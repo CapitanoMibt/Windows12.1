@@ -1,0 +1,2748 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Windows 12 Concept</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-color: #f3f4f6;
+            --window-bg: rgba(255, 255, 255, 0.85);
+            --taskbar-bg: rgba(255, 255, 255, 0.7);
+            --text-color: #000;
+            --accent-color: #3b82f6;
+        }
+
+        .dark-mode {
+            --bg-color: #0f172a;
+            --window-bg: rgba(15, 23, 42, 0.9);
+            --taskbar-bg: rgba(15, 23, 42, 0.8);
+            --text-color: #f8fafc;
+            --accent-color: #38bdf8;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+            background-size: cover;
+            background-position: center;
+            background-image: url('https://images.unsplash.com/photo-1579546929518-9e396f3cc809?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80');
+            transition: background-image 0.5s;
+            user-select: none;
+        }
+
+        .glass {
+            background: var(--window-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .desktop-icon {
+            width: 80px;
+            height: 90px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background 0.2s;
+            text-align: center;
+            color: white;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+            position: absolute;
+        }
+
+        .desktop-icon:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .desktop-icon.selected {
+            background: rgba(255, 255, 255, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+        }
+
+        .window {
+            position: absolute;
+            background: var(--window-bg);
+            color: var(--text-color);
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            min-width: 300px;
+            min-height: 200px;
+            resize: both;
+        }
+        
+        .dark-mode .window {
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .title-bar {
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 10px;
+            cursor: grab;
+            background: rgba(0,0,0,0.05);
+        }
+
+        .title-bar:active {
+            cursor: grabbing;
+        }
+
+        .window-content {
+            flex: 1;
+            overflow: auto;
+            padding: 10px;
+            position: relative;
+        }
+
+        .taskbar {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            padding: 0 10px;
+            gap: 8px;
+            z-index: 10000;
+            transition: all 0.3s ease;
+        }
+
+        .taskbar-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: var(--text-color);
+        }
+
+        .taskbar-icon:hover {
+            background: rgba(255, 255, 255, 0.4);
+        }
+
+        .taskbar-icon.active {
+            background: rgba(255, 255, 255, 0.3);
+            border-bottom: 3px solid var(--accent-color);
+        }
+
+        .context-menu {
+            position: absolute;
+            background: var(--window-bg);
+            backdrop-filter: blur(10px);
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            padding: 5px 0;
+            width: 200px;
+            display: none;
+            z-index: 99999;
+            color: var(--text-color);
+        }
+
+        .context-menu-item {
+            padding: 8px 15px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .context-menu-item:hover {
+            background: var(--accent-color);
+            color: white;
+        }
+
+        /* App Specific */
+        .paint-canvas {
+            border: 1px solid #ccc;
+            cursor: crosshair;
+            background: white;
+        }
+        
+        /* Start Menu */
+        .start-menu {
+            position: absolute;
+            bottom: 70px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            width: 600px;
+            height: 500px;
+            background: var(--window-bg);
+            backdrop-filter: blur(15px);
+            border-radius: 12px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.3);
+            display: none;
+            opacity: 0;
+            transition: all 0.2s;
+            z-index: 9999;
+            padding: 20px;
+            flex-direction: column;
+            color: var(--text-color);
+        }
+        
+        .start-menu.open {
+            display: flex;
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+    </style>
+</head>
+<body>
+
+    <div id="desktop" class="w-full h-screen relative overflow-hidden">
+        <!-- Icons will be generated here -->
+    </div>
+
+    <!-- Taskbar -->
+    <div id="taskbar" class="taskbar glass">
+        <div class="taskbar-icon" onclick="toggleStartMenu()" title="Пуск">
+            <i class="fab fa-windows text-blue-500"></i>
+        </div>
+        <!-- App icons will be added here -->
+    </div>
+
+    <!-- Start Menu -->
+    <div id="start-menu" class="start-menu border border-gray-400/30">
+        <div class="mb-4">
+            <input type="text" placeholder="Поиск приложений, настроек и документов" class="w-full p-2 rounded-md bg-gray-100 dark:bg-gray-700 border-none outline-none text-sm">
+        </div>
+        <div class="grid grid-cols-6 gap-4">
+            <div class="flex flex-col items-center gap-2 cursor-pointer hover:bg-white/10 p-2 rounded" onclick="openSettings()">
+                <div class="w-10 h-10 bg-gray-500 rounded-full flex items-center justify-center text-white"><i class="fas fa-cog"></i></div>
+                <span class="text-xs">Параметры</span>
+            </div>
+            <div class="flex flex-col items-center gap-2 cursor-pointer hover:bg-white/10 p-2 rounded" onclick="openApp('notepad')">
+                <div class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white"><i class="fas fa-sticky-note"></i></div>
+                <span class="text-xs">Блокнот</span>
+            </div>
+            <div class="flex flex-col items-center gap-2 cursor-pointer hover:bg-white/10 p-2 rounded" onclick="openApp('paint')">
+                <div class="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center text-white"><i class="fas fa-palette"></i></div>
+                <span class="text-xs">Рисование</span>
+            </div>
+             <div class="flex flex-col items-center gap-2 cursor-pointer hover:bg-white/10 p-2 rounded" onclick="openApp('taskmanager')">
+                <div class="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center text-white"><i class="fas fa-chart-line"></i></div>
+                <span class="text-xs">Диспетчер</span>
+            </div>
+            <div class="flex flex-col items-center gap-2 cursor-pointer hover:bg-white/10 p-2 rounded" onclick="openApp('cmd')">
+                <div class="w-10 h-10 bg-black rounded-full flex items-center justify-center text-white border border-gray-500"><i class="fas fa-terminal"></i></div>
+                <span class="text-xs">Терминал</span>
+            </div>
+            <div class="flex flex-col items-center gap-2 cursor-pointer hover:bg-white/10 p-2 rounded" onclick="openApp('browser')">
+                <div class="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white"><i class="fas fa-globe"></i></div>
+                <span class="text-xs">Браузер</span>
+            </div>
+            <div class="flex flex-col items-center gap-2 cursor-pointer hover:bg-white/10 p-2 rounded" onclick="openApp('calculator')">
+                <div class="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center text-white"><i class="fas fa-calculator"></i></div>
+                <span class="text-xs">Калькулятор</span>
+            </div>
+             <div class="flex flex-col items-center gap-2 cursor-pointer hover:bg-white/10 p-2 rounded" onclick="openApp('camera')">
+                <div class="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center text-white border border-gray-600"><i class="fas fa-camera"></i></div>
+                <span class="text-xs">Камера</span>
+            </div>
+            <div class="flex flex-col items-center gap-2 cursor-pointer hover:bg-white/10 p-2 rounded" onclick="openApp('chat')">
+                <div class="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center text-white"><i class="fas fa-comments"></i></div>
+                <span class="text-xs">Чат</span>
+            </div>
+             <div class="flex flex-col items-center gap-2 cursor-pointer hover:bg-white/10 p-2 rounded" onclick="openApp('word')">
+                <div class="w-10 h-10 bg-blue-700 rounded-full flex items-center justify-center text-white"><i class="fas fa-file-word"></i></div>
+                <span class="text-xs">Word</span>
+            </div>
+            <div class="flex flex-col items-center gap-2 cursor-pointer hover:bg-white/10 p-2 rounded" onclick="openApp('youtube')">
+                <div class="w-10 h-10 bg-red-600 rounded-full flex items-center justify-center text-white"><i class="fab fa-youtube"></i></div>
+                <span class="text-xs">MyTube</span>
+            </div>
+            <div class="flex flex-col items-center gap-2 cursor-pointer hover:bg-white/10 p-2 rounded" onclick="openApp('translate')">
+                <div class="w-10 h-10 bg-indigo-500 rounded-full flex items-center justify-center text-white"><i class="fas fa-language"></i></div>
+                <span class="text-xs">Переводчик</span>
+            </div>
+            <div class="flex flex-col items-center gap-2 cursor-pointer hover:bg-white/10 p-2 rounded" onclick="openApp('tv')">
+                <div class="w-10 h-10 bg-pink-600 rounded-full flex items-center justify-center text-white"><i class="fas fa-tv"></i></div>
+                <span class="text-xs">ТВ</span>
+            </div>
+            <div class="flex flex-col items-center gap-2 cursor-pointer hover:bg-white/10 p-2 rounded" onclick="openApp('snipping')">
+                <div class="w-10 h-10 bg-teal-500 rounded-full flex items-center justify-center text-white"><i class="fas fa-cut"></i></div>
+                <span class="text-xs">Ножницы</span>
+            </div>
+             <div class="flex flex-col items-center gap-2 cursor-pointer hover:bg-white/10 p-2 rounded" onclick="openApp('controlpanel')">
+                <div class="w-10 h-10 bg-blue-800 rounded-full flex items-center justify-center text-white"><i class="fas fa-sliders-h"></i></div>
+                <span class="text-xs">Панель</span>
+            </div>
+            <div class="flex flex-col items-center gap-2 cursor-pointer hover:bg-white/10 p-2 rounded" onclick="openApp('powerpoint')">
+                <div class="w-10 h-10 bg-orange-600 rounded-full flex items-center justify-center text-white"><i class="fas fa-file-powerpoint"></i></div>
+                <span class="text-xs">PowerPoint</span>
+            </div>
+             <div class="flex flex-col items-center gap-2 cursor-pointer hover:bg-white/10 p-2 rounded" onclick="openApp('google')">
+                <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center text-white border border-gray-300">
+                    <span class="font-bold text-lg"><span class="text-blue-500">G</span><span class="text-red-500">o</span><span class="text-yellow-500">o</span><span class="text-blue-500">g</span><span class="text-green-500">l</span><span class="text-red-500">e</span></span>
+                </div>
+                <span class="text-xs">Google</span>
+            </div>
+            <div class="flex flex-col items-center gap-2 cursor-pointer hover:bg-white/10 p-2 rounded" onclick="openApp('mediaplayer')">
+                <div class="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center text-white"><i class="fas fa-music"></i></div>
+                <span class="text-xs">Музыка</span>
+            </div>
+            <div class="flex flex-col items-center gap-2 cursor-pointer hover:bg-white/10 p-2 rounded" onclick="openApp('soundrecorder')">
+                <div class="w-10 h-10 bg-blue-400 rounded-full flex items-center justify-center text-white"><i class="fas fa-microphone"></i></div>
+                <span class="text-xs">Запись</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Context Menu -->
+    <div id="context-menu" class="context-menu">
+        <div class="context-menu-item" onclick="createFile('folder')"><i class="fas fa-folder text-yellow-500"></i> Папка</div>
+        <div class="context-menu-item" onclick="createFile('text')"><i class="fas fa-file-alt text-gray-500"></i> Текстовый документ</div>
+        <div class="context-menu-item" onclick="createFile('image')"><i class="fas fa-image text-purple-500"></i> Изображение</div>
+        <div class="context-menu-item" onclick="createFile('python')"><i class="fab fa-python text-blue-400"></i> Код Python</div>
+        <div class="border-t border-gray-300 my-1"></div>
+        <div class="context-menu-item" onclick="openSettings()"><i class="fas fa-cog"></i> Персонализация</div>
+    </div>
+
+    <script>
+        // State
+        let windows = [];
+        let files = [
+            { id: 'pc', name: 'Этот компьютер', type: 'system', icon: 'fa-desktop', color: 'text-blue-300', x: 20, y: 20 },
+            { id: 'recycle', name: 'Корзина', type: 'system', icon: 'fa-trash-alt', color: 'text-gray-300', x: 20, y: 120 },
+            { id: 'settings', name: 'Параметры', type: 'app', icon: 'fa-cog', color: 'text-gray-400', x: 20, y: 220, action: 'openSettings' }
+        ];
+        let nextZIndex = 100;
+        let fileIdCounter = 0;
+        let darkMode = false;
+        
+        // DOM Elements
+        const desktop = document.getElementById('desktop');
+        const contextMenu = document.getElementById('context-menu');
+        const taskbar = document.getElementById('taskbar');
+        const startMenu = document.getElementById('start-menu');
+
+        // Initialization
+        function init() {
+            renderDesktopIcons();
+            
+            // Context Menu Listener
+            desktop.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+                if (e.target === desktop) {
+                    showContextMenu(e.clientX, e.clientY);
+                }
+            });
+
+            document.addEventListener('click', () => {
+                contextMenu.style.display = 'none';
+                if(startMenu.classList.contains('open') && !event.target.closest('#start-menu') && !event.target.closest('.taskbar-icon')) {
+                     startMenu.classList.remove('open');
+                }
+            });
+        }
+
+        // --- Desktop Icons ---
+        let trashFiles = []; // Store deleted files
+
+        function renderDesktopIcons() {
+            desktop.innerHTML = '';
+            files.forEach(file => {
+                const icon = document.createElement('div');
+                icon.className = 'desktop-icon';
+                icon.dataset.id = file.id; // Store ID for drop logic
+                icon.style.left = file.x + 'px';
+                icon.style.top = file.y + 'px';
+                icon.innerHTML = `
+                    <i class="fas ${file.icon} fa-2x mb-2 ${file.color}"></i>
+                    <span class="text-xs leading-tight bg-black/20 px-1 rounded">${file.name}</span>
+                `;
+                
+                // Drag Logic
+                icon.onmousedown = (e) => dragElement(e, icon, file);
+                
+                // Double Click
+                icon.ondblclick = () => openFile(file);
+
+                desktop.appendChild(icon);
+            });
+        }
+
+        function dragElement(e, element, fileData) {
+            e.stopPropagation();
+            let shiftX = e.clientX - element.getBoundingClientRect().left;
+            let shiftY = e.clientY - element.getBoundingClientRect().top;
+
+            function moveAt(pageX, pageY) {
+                let x = pageX - shiftX;
+                let y = pageY - shiftY;
+                
+                // Boundaries
+                if (x < 0) x = 0;
+                if (y < 0) y = 0;
+                if (x > window.innerWidth - 80) x = window.innerWidth - 80;
+                if (y > window.innerHeight - 90) y = window.innerHeight - 90;
+
+                element.style.left = x + 'px';
+                element.style.top = y + 'px';
+                
+                if(fileData) {
+                    fileData.x = x;
+                    fileData.y = y;
+                }
+            }
+
+            function onMouseMove(event) {
+                moveAt(event.pageX, event.pageY);
+            }
+
+            document.addEventListener('mousemove', onMouseMove);
+
+            element.onmouseup = function(e) {
+                document.removeEventListener('mousemove', onMouseMove);
+                element.onmouseup = null;
+                
+                // Drop check
+                element.style.visibility = 'hidden';
+                let elemBelow = document.elementFromPoint(e.clientX, e.clientY);
+                element.style.visibility = 'visible';
+
+                if (!elemBelow) return;
+
+                let targetIcon = elemBelow.closest('.desktop-icon');
+                if (targetIcon && targetIcon !== element) {
+                    const targetId = targetIcon.dataset.id;
+                    const targetFile = files.find(f => f.id === targetId);
+
+                    if (targetFile) {
+                        // Prevent moving system icons
+                        if (['pc', 'recycle', 'settings'].includes(fileData.id)) return;
+
+                        // Drop to Folder
+                        if (targetFile.type === 'folder') {
+                             const index = files.indexOf(fileData);
+                             if (index > -1) {
+                                 files.splice(index, 1);
+                                 targetFile.content.push(fileData);
+                                 renderDesktopIcons();
+                                 if(document.getElementById('win_' + targetFile.id)) {
+                                     renderWindowContent(targetFile.id, 'folder', targetFile);
+                                 }
+                             }
+                        }
+                        // Drop to Recycle Bin
+                        else if (targetFile.id === 'recycle') {
+                             const index = files.indexOf(fileData);
+                             if (index > -1) {
+                                 files.splice(index, 1);
+                                 trashFiles.push(fileData);
+                                 renderDesktopIcons();
+                                 // Check if Recycle bin is open and refresh it
+                                 // We need to implement recycle bin view
+                                 if(document.getElementById('win_recycle')) {
+                                     renderWindowContent('recycle', 'folder', { content: trashFiles, id: 'recycle' });
+                                 }
+                             }
+                        }
+                    }
+                }
+            };
+        }
+
+        // --- Context Menu ---
+        function showContextMenu(x, y) {
+            contextMenu.style.left = x + 'px';
+            contextMenu.style.top = y + 'px';
+            contextMenu.style.display = 'block';
+        }
+
+        function createFile(type) {
+            const id = 'file_' + Date.now();
+            let newFile = {
+                id: id,
+                x: 120, // Default position
+                y: 20 + (files.length * 10) % 500
+            };
+
+            if (type === 'folder') {
+                newFile.name = 'Новая папка';
+                newFile.type = 'folder';
+                newFile.icon = 'fa-folder';
+                newFile.color = 'text-yellow-400';
+                newFile.content = [];
+            } else if (type === 'text') {
+                newFile.name = 'Документ.txt';
+                newFile.type = 'text';
+                newFile.icon = 'fa-file-alt';
+                newFile.color = 'text-gray-200';
+                newFile.content = '';
+            } else if (type === 'image') {
+                newFile.name = 'Рисунок.png';
+                newFile.type = 'image';
+                newFile.icon = 'fa-image';
+                newFile.color = 'text-purple-400';
+                newFile.content = null; // Canvas data
+            } else if (type === 'python') {
+                newFile.name = 'main.py';
+                newFile.type = 'python';
+                newFile.icon = 'fa-python';
+                newFile.color = 'text-blue-400';
+                newFile.content = 'print("Hello World")';
+            }
+
+            files.push(newFile);
+            renderDesktopIcons();
+        }
+
+        // --- Window Manager ---
+        function openFile(file) {
+            if (file.action === 'openSettings') {
+                openSettings();
+                return;
+            }
+            if (file.type === 'folder') {
+                openWindow(file.id, file.name, 'folder', file);
+            } else if (file.type === 'text') {
+                openWindow(file.id, file.name, 'notepad', file);
+            } else if (file.type === 'image') {
+                openWindow(file.id, file.name, 'paint', file);
+            } else if (file.type === 'python') {
+                openWindow(file.id, file.name, 'code', file);
+            } else if (file.type === 'video') {
+                openWindow(file.id, file.name, 'video', file);
+            } else if (file.id === 'pc') {
+                openWindow('pc', 'Этот компьютер', 'folder', { content: files, id: 'pc' });
+            } else if (file.id === 'recycle') {
+                openWindow('recycle', 'Корзина', 'folder', { content: trashFiles, id: 'recycle' });
+            }
+        }
+
+        function openApp(appName) {
+            if (appName === 'notepad') createFile('text'); // Simplification for demo
+            if (appName === 'paint') createFile('image');
+            if (appName === 'taskmanager') openTaskManager();
+            if (appName === 'cmd') openWindow('cmd_' + Date.now(), 'Командная строка', 'cmd');
+            if (appName === 'browser') openWindow('browser_' + Date.now(), 'Microsoft Edge', 'browser');
+            if (appName === 'calculator') openWindow('calc_' + Date.now(), 'Калькулятор', 'calculator');
+            if (appName === 'camera') openWindow('camera_' + Date.now(), 'Камера', 'camera');
+            if (appName === 'chat') openWindow('chat_' + Date.now(), 'Чат', 'chat');
+            if (appName === 'word') openWindow('word_' + Date.now(), 'Microsoft Word', 'word');
+            if (appName === 'youtube') openWindow('youtube_' + Date.now(), 'MyTube Offline', 'youtube');
+            if (appName === 'translate') openWindow('translate_' + Date.now(), 'Переводчик', 'translate');
+            if (appName === 'tv') openWindow('tv_' + Date.now(), 'TV - Телевизор', 'tv');
+            if (appName === 'snipping') openWindow('snip_' + Date.now(), 'Ножницы', 'snipping');
+            if (appName === 'controlpanel') openWindow('cp_' + Date.now(), 'Панель управления', 'controlpanel');
+            if (appName === 'powerpoint') openWindow('ppt_' + Date.now(), 'PowerPoint - Презентация1', 'powerpoint');
+            if (appName === 'google') openWindow('google_' + Date.now(), 'Google', 'google');
+            if (appName === 'mediaplayer') openWindow('mp_' + Date.now(), 'Медиа плеер', 'mediaplayer');
+            if (appName === 'soundrecorder') openWindow('rec_' + Date.now(), 'Звукозапись', 'soundrecorder');
+        }
+
+        function openWindow(id, title, appType, fileData = null) {
+            // Check if already open
+            const existing = document.getElementById('win_' + id);
+            if (existing) {
+                bringToFront(existing);
+                return;
+            }
+
+            const win = document.createElement('div');
+            win.id = 'win_' + id;
+            win.className = 'window glass';
+            win.style.left = '100px';
+            win.style.top = '100px';
+            win.style.width = '600px';
+            win.style.height = '400px';
+            win.style.zIndex = ++nextZIndex;
+
+            win.innerHTML = `
+                <div class="title-bar" onmousedown="dragWindow(event, '${win.id}')">
+                    <div class="flex items-center gap-2">
+                        <i class="fas fa-window-restore text-gray-500"></i>
+                        <span class="text-sm font-medium select-none">${title}</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button class="hover:bg-gray-300 dark:hover:bg-gray-600 rounded p-1 w-6 h-6 flex items-center justify-center text-xs" onclick="minimizeWindow('${win.id}')"><i class="fas fa-minus"></i></button>
+                        <button class="hover:bg-gray-300 dark:hover:bg-gray-600 rounded p-1 w-6 h-6 flex items-center justify-center text-xs" onclick="maximizeWindow('${win.id}')"><i class="fas fa-expand"></i></button>
+                        <button class="hover:bg-red-500 hover:text-white rounded p-1 w-6 h-6 flex items-center justify-center text-xs" onclick="closeWindow('${win.id}')"><i class="fas fa-times"></i></button>
+                    </div>
+                </div>
+                <div class="window-content" id="content_${id}">
+                    <!-- Content goes here -->
+                </div>
+            `;
+
+            desktop.appendChild(win);
+            win.addEventListener('mousedown', () => bringToFront(win));
+            
+            // Add to taskbar
+            addToTaskbar(id, title, appType);
+            
+            // Render Content
+            renderWindowContent(id, appType, fileData);
+            
+            windows.push({ id, title, appType });
+        }
+
+        function closeWindow(id) {
+            const win = document.getElementById(id);
+            if (win) win.remove();
+            const taskItem = document.getElementById('task_' + id.replace('win_', ''));
+            if (taskItem) taskItem.remove();
+            
+            // Remove from windows array
+            windows = windows.filter(w => 'win_' + w.id !== id);
+        }
+        
+        function minimizeWindow(id) {
+             const win = document.getElementById(id);
+             win.style.display = 'none';
+        }
+
+        function maximizeWindow(id) {
+            const win = document.getElementById(id);
+            if(win.style.width === '100%') {
+                win.style.width = '600px';
+                win.style.height = '400px';
+                win.style.left = '100px';
+                win.style.top = '100px';
+            } else {
+                win.style.width = '100%';
+                win.style.height = 'calc(100vh - 60px)'; // Account for taskbar
+                win.style.left = '0';
+                win.style.top = '0';
+            }
+        }
+        
+        function bringToFront(element) {
+            element.style.display = 'flex';
+            element.style.zIndex = ++nextZIndex;
+        }
+
+        function dragWindow(e, id) {
+            const element = document.getElementById(id);
+            if(element.style.width === '100%') return; // Don't drag if maximized
+
+            let shiftX = e.clientX - element.getBoundingClientRect().left;
+            let shiftY = e.clientY - element.getBoundingClientRect().top;
+
+            function moveAt(pageX, pageY) {
+                let x = pageX - shiftX;
+                let y = pageY - shiftY;
+                if(y < 0) y = 0;
+                element.style.left = x + 'px';
+                element.style.top = y + 'px';
+            }
+
+            function onMouseMove(event) {
+                moveAt(event.pageX, event.pageY);
+            }
+
+            document.addEventListener('mousemove', onMouseMove);
+
+            document.onmouseup = function() {
+                document.removeEventListener('mousemove', onMouseMove);
+                document.onmouseup = null;
+            };
+        }
+        
+        function addToTaskbar(id, title, type) {
+            const cleanId = id.replace('win_', '');
+            // Check if exists
+            if(document.getElementById('task_' + cleanId)) return;
+
+            const item = document.createElement('div');
+            item.id = 'task_' + cleanId;
+            item.className = 'taskbar-icon active';
+            item.title = title;
+            item.onclick = () => {
+                const win = document.getElementById('win_' + cleanId);
+                if(win.style.display === 'none') {
+                    win.style.display = 'flex';
+                    bringToFront(win);
+                } else if (parseInt(win.style.zIndex) < nextZIndex) {
+                    bringToFront(win);
+                } else {
+                    minimizeWindow('win_' + cleanId);
+                }
+            };
+            
+            let iconClass = 'fa-window-maximize';
+            const iconMap = {
+                'settings': 'fa-cog',
+                'notepad': 'fa-file-alt',
+                'text': 'fa-file-alt',
+                'paint': 'fa-palette',
+                'image': 'fa-image',
+                'folder': 'fa-folder',
+                'chat': 'fa-comments',
+                'video': 'fa-film',
+                'word': 'fa-file-word',
+                'youtube': 'fab fa-youtube',
+                'translate': 'fa-language',
+                'tv': 'fa-tv',
+                'snipping': 'fa-cut',
+                'calculator': 'fa-calculator',
+                'browser': 'fa-globe',
+                'camera': 'fa-camera',
+                'cmd': 'fa-terminal',
+                'taskmanager': 'fa-chart-line',
+                'code': 'fab fa-python',
+                'controlpanel': 'fa-sliders-h',
+                'powerpoint': 'fa-file-powerpoint',
+                'google': 'fab fa-google',
+                'mediaplayer': 'fa-music',
+                'soundrecorder': 'fa-microphone'
+            };
+
+            if (iconMap[type]) iconClass = iconMap[type];
+
+            item.innerHTML = `<i class="fas ${iconClass}"></i>`;
+            taskbar.appendChild(item);
+        }
+
+        function renderWindowContent(id, appType, fileData) {
+            const container = document.getElementById(`content_${id}`);
+            
+            if (appType === 'settings') {
+                renderSettings(container);
+            } else if (appType === 'notepad') {
+                renderNotepad(container, fileData);
+            } else if (appType === 'paint') {
+                renderPaint(container, fileData);
+            } else if (appType === 'folder') {
+                renderFolder(container, fileData);
+            } else if (appType === 'code') {
+                renderPython(container, fileData);
+            } else if (appType === 'taskmanager') {
+                renderTaskManager(container);
+            } else if (appType === 'cmd') {
+                renderTerminal(container);
+            } else if (appType === 'browser') {
+                renderBrowser(container);
+            } else if (appType === 'calculator') {
+                renderCalculator(container);
+            } else if (appType === 'camera') {
+                renderCamera(container);
+            } else if (appType === 'chat') {
+                renderChat(container);
+            } else if (appType === 'video') {
+                renderVideoPlayer(container, fileData);
+            } else if (appType === 'word') {
+                renderWord(container);
+            } else if (appType === 'youtube') {
+                renderYouTube(container);
+            } else if (appType === 'translate') {
+                renderTranslator(container);
+            } else if (appType === 'tv') {
+                renderTV(container);
+            } else if (appType === 'snipping') {
+                renderSnippingTool(container);
+            } else if (appType === 'controlpanel') {
+                renderControlPanel(container);
+            } else if (appType === 'powerpoint') {
+                renderPowerPoint(container);
+            } else if (appType === 'google') {
+                renderGoogle(container);
+            } else if (appType === 'mediaplayer') {
+                renderMediaPlayer(container);
+            } else if (appType === 'soundrecorder') {
+                renderSoundRecorder(container);
+            }
+        }
+
+        // --- Start Menu ---
+        function toggleStartMenu() {
+            startMenu.classList.toggle('open');
+            if(startMenu.classList.contains('open')) {
+                startMenu.style.zIndex = ++nextZIndex;
+            }
+        }
+        
+        // --- Apps Implementations (Placeholders for now) ---
+        function openSettings() {
+            openWindow('settings', 'Параметры', 'settings');
+        }
+        
+        function openTaskManager() {
+            openWindow('taskmgr', 'Диспетчер задач', 'taskmanager');
+        }
+
+        function renderSettings(container) {
+            container.innerHTML = `
+                <div class="p-4 space-y-6">
+                    <div>
+                        <h3 class="font-bold mb-2 text-gray-800 dark:text-white">Персонализация</h3>
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="text-sm">Тёмная тема</span>
+                            <button class="bg-gray-300 w-12 h-6 rounded-full relative transition" onclick="toggleTheme(this)">
+                                <div class="w-4 h-4 bg-white rounded-full absolute top-1 left-1 transition-all" id="theme-toggle-knob"></div>
+                            </button>
+                        </div>
+                        
+                        <span class="text-sm font-medium mb-2 block">Обои рабочего стола</span>
+                        <div class="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto p-1">
+                             <div class="cursor-pointer rounded overflow-hidden border-2 border-transparent hover:border-blue-500 transition" onclick="changeWallpaper('https://images.unsplash.com/photo-1579546929518-9e396f3cc809?ixlib=rb-4.0.3&w=1920')">
+                                <img src="https://images.unsplash.com/photo-1579546929518-9e396f3cc809?ixlib=rb-4.0.3&w=200" class="w-full h-16 object-cover">
+                                <div class="text-[10px] text-center bg-gray-100 dark:bg-gray-700">Default</div>
+                             </div>
+                             <div class="cursor-pointer rounded overflow-hidden border-2 border-transparent hover:border-blue-500 transition" onclick="changeWallpaper('https://images.unsplash.com/photo-1506744038136-46273834b3fb?ixlib=rb-4.0.3&w=1920')">
+                                <img src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?ixlib=rb-4.0.3&w=200" class="w-full h-16 object-cover">
+                                <div class="text-[10px] text-center bg-gray-100 dark:bg-gray-700">Nature</div>
+                             </div>
+                             <div class="cursor-pointer rounded overflow-hidden border-2 border-transparent hover:border-blue-500 transition" onclick="changeWallpaper('https://images.unsplash.com/photo-1534796636912-3b95b3ab5986?ixlib=rb-4.0.3&w=1920')">
+                                <img src="https://images.unsplash.com/photo-1534796636912-3b95b3ab5986?ixlib=rb-4.0.3&w=200" class="w-full h-16 object-cover">
+                                <div class="text-[10px] text-center bg-gray-100 dark:bg-gray-700">Night</div>
+                             </div>
+                             <div class="cursor-pointer rounded overflow-hidden border-2 border-transparent hover:border-blue-500 transition" onclick="changeWallpaper('https://images.unsplash.com/photo-1550684848-fac1c5b4e853?ixlib=rb-4.0.3&w=1920')">
+                                <img src="https://images.unsplash.com/photo-1550684848-fac1c5b4e853?ixlib=rb-4.0.3&w=200" class="w-full h-16 object-cover">
+                                <div class="text-[10px] text-center bg-gray-100 dark:bg-gray-700">Abstract</div>
+                             </div>
+                             <div class="cursor-pointer rounded overflow-hidden border-2 border-transparent hover:border-blue-500 transition" onclick="changeWallpaper('https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?ixlib=rb-4.0.3&w=1920')">
+                                <img src="https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?ixlib=rb-4.0.3&w=200" class="w-full h-16 object-cover">
+                                <div class="text-[10px] text-center bg-gray-100 dark:bg-gray-700">City</div>
+                             </div>
+                             <div class="cursor-pointer rounded overflow-hidden border-2 border-transparent hover:border-blue-500 transition" onclick="changeWallpaper('https://images.unsplash.com/photo-1451187580459-43490279c0fa?ixlib=rb-4.0.3&w=1920')">
+                                <img src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?ixlib=rb-4.0.3&w=200" class="w-full h-16 object-cover">
+                                <div class="text-[10px] text-center bg-gray-100 dark:bg-gray-700">Space</div>
+                             </div>
+                              <div class="cursor-pointer rounded overflow-hidden border-2 border-transparent hover:border-blue-500 transition" onclick="changeWallpaper('https://images.unsplash.com/photo-1518837695005-2083093ee35b?ixlib=rb-4.0.3&w=1920')">
+                                <img src="https://images.unsplash.com/photo-1518837695005-2083093ee35b?ixlib=rb-4.0.3&w=200" class="w-full h-16 object-cover">
+                                <div class="text-[10px] text-center bg-gray-100 dark:bg-gray-700">Ocean</div>
+                             </div>
+                             <div class="cursor-pointer rounded overflow-hidden border-2 border-transparent hover:border-blue-500 transition" onclick="changeWallpaper('https://images.unsplash.com/photo-1505322022379-7c3353ee6291?ixlib=rb-4.0.3&w=1920')">
+                                <img src="https://images.unsplash.com/photo-1505322022379-7c3353ee6291?ixlib=rb-4.0.3&w=200" class="w-full h-16 object-cover">
+                                <div class="text-[10px] text-center bg-gray-100 dark:bg-gray-700">Lamp</div>
+                             </div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h3 class="font-bold mb-2 text-gray-800 dark:text-white">Панель задач</h3>
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-sm">Положение меню Пуск</span>
+                            <select class="p-1 rounded bg-gray-200 dark:bg-gray-700 text-sm" onchange="moveStartMenu(this.value)">
+                                <option value="center">По центру</option>
+                                <option value="left">Слева</option>
+                            </select>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm">Положение панели задач</span>
+                            <select class="p-1 rounded bg-gray-200 dark:bg-gray-700 text-sm" onchange="moveTaskbar(this.value)">
+                                <option value="bottom">Снизу</option>
+                                <option value="top">Сверху</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            `;
+            // Set initial state of toggle
+            if(darkMode) {
+                 const knob = container.querySelector('#theme-toggle-knob');
+                 const btn = knob.parentElement;
+                 knob.style.left = 'auto';
+                 knob.style.right = '4px';
+                 btn.classList.add('bg-blue-500');
+            }
+        }
+        
+        function toggleTheme(btn) {
+            darkMode = !darkMode;
+            document.body.classList.toggle('dark-mode');
+            const knob = btn.querySelector('div');
+            
+            if(darkMode) {
+                knob.style.left = 'auto';
+                knob.style.right = '4px';
+                btn.classList.add('bg-blue-500');
+                btn.classList.remove('bg-gray-300');
+            } else {
+                knob.style.left = '4px';
+                knob.style.right = 'auto';
+                btn.classList.remove('bg-blue-500');
+                btn.classList.add('bg-gray-300');
+            }
+        }
+
+        function changeWallpaper(url) {
+            document.body.style.backgroundImage = `url('${url}')`;
+        }
+        
+        function moveStartMenu(pos) {
+            if(pos === 'left') {
+                taskbar.style.left = '0';
+                taskbar.style.transform = 'translateX(0)';
+                taskbar.style.borderRadius = '0 12px 12px 0';
+                startMenu.style.left = '0';
+                startMenu.style.transform = 'translate(10px, 20px)';
+            } else {
+                taskbar.style.left = '50%';
+                taskbar.style.transform = 'translateX(-50%)';
+                taskbar.style.borderRadius = '12px';
+                startMenu.style.left = '50%';
+                startMenu.style.transform = 'translateX(-50%) translateY(20px)';
+            }
+        }
+
+        function moveTaskbar(pos) {
+            if (pos === 'top') {
+                taskbar.style.bottom = 'auto';
+                taskbar.style.top = '10px';
+                startMenu.style.bottom = 'auto';
+                startMenu.style.top = '70px';
+            } else {
+                taskbar.style.top = 'auto';
+                taskbar.style.bottom = '10px';
+                startMenu.style.top = 'auto';
+                startMenu.style.bottom = '70px';
+            }
+        }
+
+        function renderNotepad(container, fileData) {
+            const content = fileData.content || '';
+            const uniqueId = Date.now();
+            container.innerHTML = `
+                <div class="flex flex-col h-full">
+                    <div class="flex items-center gap-2 p-1 border-b border-gray-300 dark:border-gray-600 mb-2">
+                        <select id="font-family-${uniqueId}" class="text-xs p-1 rounded bg-gray-100 dark:bg-gray-700" onchange="document.getElementById('editor-${uniqueId}').style.fontFamily = this.value">
+                            <option value="sans-serif">Sans Serif</option>
+                            <option value="serif">Serif</option>
+                            <option value="monospace">Monospace</option>
+                        </select>
+                        <select id="font-size-${uniqueId}" class="text-xs p-1 rounded bg-gray-100 dark:bg-gray-700" onchange="document.getElementById('editor-${uniqueId}').style.fontSize = this.value + 'px'">
+                            <option value="12">12</option>
+                            <option value="14" selected>14</option>
+                            <option value="18">18</option>
+                            <option value="24">24</option>
+                        </select>
+                        <input type="color" id="text-color-${uniqueId}" onchange="document.getElementById('editor-${uniqueId}').style.color = this.value" title="Color">
+                        <button class="text-xs px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 ml-auto" onclick="saveFile('${fileData.id}', 'editor-${uniqueId}')">Сохранить</button>
+                    </div>
+                    <textarea id="editor-${uniqueId}" class="flex-1 w-full p-2 bg-transparent resize-none outline-none" style="font-family: sans-serif; font-size: 14px;">${content}</textarea>
+                </div>
+            `;
+            
+            // Attach save to window object for global access or handle via event listener locally if possible
+            // Using a global function for simplicity in this constrained env
+            window.saveFile = (fileId, editorId) => {
+                const text = document.getElementById(editorId).value;
+                const file = findFileById(fileId);
+                if(file) {
+                    file.content = text;
+                    alert('Файл сохранен!');
+                }
+            };
+        }
+        
+        function renderPaint(container, fileData) {
+            const uniqueId = Date.now();
+            container.innerHTML = `
+                <div class="flex flex-col h-full">
+                    <div class="flex items-center gap-2 p-1 border-b border-gray-300 dark:border-gray-600 mb-2">
+                        <input type="color" id="paint-color-${uniqueId}" value="#000000">
+                        <input type="range" id="brush-size-${uniqueId}" min="1" max="20" value="5" title="Brush Size">
+                        <button class="text-xs px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded" onclick="setEraser('${uniqueId}')"><i class="fas fa-eraser"></i></button>
+                        <button class="text-xs px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded" onclick="setBrush('${uniqueId}')"><i class="fas fa-paint-brush"></i></button>
+                        <button class="text-xs px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600 ml-auto" onclick="clearCanvas('${uniqueId}')">Очистить</button>
+                    </div>
+                    <div class="flex-1 relative bg-white overflow-hidden border border-gray-300 shadow-inner">
+                        <canvas id="canvas-${uniqueId}" class="absolute top-0 left-0"></canvas>
+                    </div>
+                </div>
+            `;
+            
+            setTimeout(() => {
+                const canvas = document.getElementById(`canvas-${uniqueId}`);
+                const parent = canvas.parentElement;
+                canvas.width = parent.clientWidth;
+                canvas.height = parent.clientHeight;
+                
+                const ctx = canvas.getContext('2d');
+                ctx.lineCap = 'round';
+                
+                // Restore if saved
+                if(fileData.content) {
+                    const img = new Image();
+                    img.onload = () => ctx.drawImage(img, 0, 0);
+                    img.src = fileData.content;
+                }
+
+                let painting = false;
+                let isEraser = false;
+
+                function startPosition(e) {
+                    painting = true;
+                    draw(e);
+                }
+
+                function finishedPosition() {
+                    painting = false;
+                    ctx.beginPath();
+                    // Auto-save
+                    fileData.content = canvas.toDataURL();
+                }
+
+                function draw(e) {
+                    if (!painting) return;
+                    const rect = canvas.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+
+                    ctx.lineWidth = document.getElementById(`brush-size-${uniqueId}`).value;
+                    if(isEraser) {
+                        ctx.strokeStyle = '#ffffff';
+                    } else {
+                        ctx.strokeStyle = document.getElementById(`paint-color-${uniqueId}`).value;
+                    }
+                    
+                    ctx.lineTo(x, y);
+                    ctx.stroke();
+                    ctx.beginPath();
+                    ctx.moveTo(x, y);
+                }
+
+                canvas.addEventListener('mousedown', startPosition);
+                canvas.addEventListener('mouseup', finishedPosition);
+                canvas.addEventListener('mousemove', draw);
+                
+                window.setEraser = (uid) => { isEraser = true; };
+                window.setBrush = (uid) => { isEraser = false; };
+                window.clearCanvas = (uid) => { 
+                    ctx.fillStyle = "white";
+                    ctx.fillRect(0, 0, canvas.width, canvas.height); 
+                    fileData.content = null;
+                };
+
+            }, 100);
+        }
+        
+        function renderFolder(container, fileData) {
+            const content = fileData.content || [];
+            const uniqueId = Date.now() + Math.random().toString(36).substr(2, 5);
+            
+            // Initial render
+            updateFolderView();
+            
+            function updateFolderView(filterText = '') {
+                const itemsToRender = (fileData.id === 'pc') ? files : content;
+                let filteredItems = itemsToRender;
+                
+                if (filterText) {
+                    filteredItems = itemsToRender.filter(f => f.name.toLowerCase().includes(filterText.toLowerCase()));
+                }
+                
+                const itemsHtml = (Array.isArray(filteredItems) && filteredItems.length > 0) ? filteredItems.map(f => `
+                    <div class="flex flex-col items-center justify-center w-20 h-24 hover:bg-blue-100/50 dark:hover:bg-white/10 rounded cursor-pointer" ondblclick="openFileFromFolder('${f.id}', '${fileData.id}')">
+                        <i class="fas ${f.icon} fa-2x ${f.color} mb-1"></i>
+                        <span class="text-xs text-center truncate w-full px-1">${f.name}</span>
+                    </div>
+                `).join('') : `<div class="p-4 text-gray-500 w-full text-center">Нет элементов</div>`;
+
+                container.innerHTML = `
+                    <div class="flex flex-col h-full">
+                        <div class="p-2 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+                            <div class="relative">
+                                <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                                <input type="text" id="search-${uniqueId}" placeholder="Поиск в ${fileData.name}..." class="w-full pl-9 p-1.5 text-sm border rounded-full dark:bg-gray-700 dark:border-gray-600 outline-none focus:ring-2 ring-blue-500" value="${filterText}" oninput="window.folderSearch('${uniqueId}', '${fileData.id}', this.value)">
+                            </div>
+                        </div>
+                        <div class="flex-1 overflow-auto p-2">
+                            <div class="flex flex-wrap content-start gap-2">
+                                ${itemsHtml}
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                // Keep focus
+                if(filterText) {
+                   const input = document.getElementById(`search-${uniqueId}`);
+                   if(input) {
+                       input.focus();
+                       input.setSelectionRange(input.value.length, input.value.length);
+                   }
+                }
+            }
+
+            // Global helper for the oninput event to call back into the closure (sort of)
+            // Since we re-render innerHTML, we lose the closure context for the input element if we aren't careful.
+            // Actually, re-rendering the WHOLE container on every keystroke causes focus loss.
+            // Better approach: Update just the list container.
+            
+            // Let's refine the render structure to avoid re-rendering the input.
+             container.innerHTML = `
+                <div class="flex flex-col h-full">
+                    <div class="p-2 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+                        <div class="relative">
+                            <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                            <input type="text" id="search-${uniqueId}" placeholder="Поиск в ${fileData.name}..." class="w-full pl-9 p-1.5 text-sm border rounded-full dark:bg-gray-700 dark:border-gray-600 outline-none focus:ring-2 ring-blue-500">
+                        </div>
+                    </div>
+                    <div class="flex-1 overflow-auto p-2">
+                        <div id="list-${uniqueId}" class="flex flex-wrap content-start gap-2"></div>
+                    </div>
+                </div>
+            `;
+            
+            const listContainer = document.getElementById(`list-${uniqueId}`);
+            const searchInput = document.getElementById(`search-${uniqueId}`);
+            
+            const renderList = (filter = '') => {
+                 const itemsToRender = (fileData.id === 'pc') ? files : content;
+                 const filteredItems = itemsToRender.filter(f => f.name.toLowerCase().includes(filter.toLowerCase()));
+                 
+                 listContainer.innerHTML = (Array.isArray(filteredItems) && filteredItems.length > 0) ? filteredItems.map(f => `
+                    <div class="flex flex-col items-center justify-center w-20 h-24 hover:bg-blue-100/50 dark:hover:bg-white/10 rounded cursor-pointer" ondblclick="openFileFromFolder('${f.id}', '${fileData.id}')">
+                        <i class="fas ${f.icon} fa-2x ${f.color} mb-1"></i>
+                        <span class="text-xs text-center truncate w-full px-1">${f.name}</span>
+                    </div>
+                `).join('') : `<div class="p-4 text-gray-500 w-full text-center">Нет элементов</div>`;
+            };
+            
+            renderList();
+            
+            searchInput.addEventListener('input', (e) => {
+                renderList(e.target.value);
+            });
+            
+            // Helper to open file
+            window.openFileFromFolder = (id, parentId) => {
+                 let file = findFileById(id);
+                 if (!file && Array.isArray(content)) file = content.find(f => f.id === id);
+                 if(file) openFile(file);
+            };
+        }
+        
+        function renderTaskManager(container) {
+            const rows = windows.map(w => `
+                <tr class="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800">
+                    <td class="p-2">${w.title}</td>
+                    <td class="p-2 text-right">
+                        <button class="text-xs bg-red-500 text-white px-2 py-1 rounded" onclick="closeWindow('win_${w.id}')">Снять задачу</button>
+                    </td>
+                </tr>
+            `).join('');
+
+            container.innerHTML = `
+                <div class="h-full overflow-auto">
+                    <table class="w-full text-sm text-left">
+                        <thead class="bg-gray-100 dark:bg-gray-700 text-xs uppercase">
+                            <tr>
+                                <th class="p-2">Приложение</th>
+                                <th class="p-2 text-right">Действие</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${rows.length ? rows : '<tr><td colspan="2" class="p-4 text-center text-gray-500">Нет запущенных задач</td></tr>'}
+                        </tbody>
+                    </table>
+                    <div class="p-2 text-xs text-gray-500 mt-2">
+                        Всего процессов: ${windows.length}
+                    </div>
+                    <button class="mt-4 text-xs bg-blue-500 text-white px-3 py-1 rounded" onclick="renderTaskManager(this.parentElement.parentElement.parentElement)">Обновить</button>
+                </div>
+            `;
+        }
+
+        function renderPython(container, fileData) {
+            const uniqueId = Date.now() + Math.random().toString(36).substr(2, 9);
+            container.innerHTML = `
+                <div class="flex flex-col h-full bg-[#1e1e1e] text-white">
+                    <div class="flex items-center justify-between p-2 bg-[#252526] border-b border-gray-700">
+                        <div class="flex items-center gap-2">
+                            <i class="fab fa-python text-blue-400"></i>
+                            <span class="text-xs text-gray-300">main.py</span>
+                        </div>
+                        <button class="flex items-center gap-1 bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-xs transition" onclick="runPythonCode('${uniqueId}')">
+                            <i class="fas fa-play"></i> Запустить
+                        </button>
+                    </div>
+                    <div class="flex-1 flex flex-col relative group">
+                        <textarea id="py-code-${uniqueId}" class="flex-1 w-full bg-[#1e1e1e] text-gray-100 font-mono p-4 resize-none outline-none text-sm leading-relaxed" spellcheck="false" placeholder="Напишите код Python здесь...">${fileData.content}</textarea>
+                        
+                        <!-- Tooltip Hint -->
+                        <div class="absolute top-2 right-4 bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition duration-500 pointer-events-none">
+                            Попробуйте: print("Hello")
+                        </div>
+                    </div>
+                    <div class="h-32 bg-[#000000] border-t border-gray-700 flex flex-col">
+                        <div class="bg-[#333] px-2 py-1 text-[10px] text-gray-400 uppercase tracking-wider">Терминал</div>
+                        <div id="py-output-${uniqueId}" class="flex-1 p-2 font-mono text-sm overflow-auto text-gray-300 whitespace-pre-wrap"></div>
+                    </div>
+                </div>
+            `;
+
+            container.querySelector('textarea').addEventListener('input', (e) => fileData.content = e.target.value);
+
+            window.runPythonCode = (uid) => {
+                const code = document.getElementById(`py-code-${uid}`).value;
+                const output = document.getElementById(`py-output-${uid}`);
+                output.innerHTML = '';
+                
+                try {
+                    // Simple simulated python environment
+                    const logs = [];
+                    
+                    // Mock print function
+                    const print = (...args) => {
+                        logs.push(args.join(' '));
+                    };
+
+                    // Very basic simulation using JS eval but trying to catch python-like syntax errors manually
+                    // or just wrapping JS execution. Since we can't run real Python, we'll try to execute it as JS 
+                    // but allow some python-isms if possible, or just treat it as JS for the concept.
+                    // However, to make it feel like Python, we can map common functions.
+                    
+                    if (code.includes('print')) {
+                        // Replace python print with js function call
+                        // This is a naive replacement for the concept
+                        const jsCode = code
+                            .replace(/print\s*\((.*?)\)/g, 'print($1)')
+                            .replace(/def\s+/, 'function ')
+                            .replace(/:/g, ' {') // very broken for indentation based python but ok for demo
+                        
+                        // Actually, for a pure concept, let's just stick to a safe eval context with 'print' defined
+                        // If it fails syntax, we show error.
+                        
+                        // We will allow JS syntax essentially, but user thinks it is Python.
+                        // We can't write a full parser here.
+                        
+                        new Function('print', code)(print);
+                    } else {
+                         new Function('print', code)(print);
+                    }
+                    
+                    if (logs.length > 0) {
+                        output.innerHTML = `<span class="text-gray-400">Process started...</span>\n` + logs.join('\n') + `\n<span class="text-green-500">Process finished with exit code 0</span>`;
+                    } else {
+                        output.innerHTML = `<span class="text-gray-400">Process started...</span>\n<span class="text-green-500">Process finished with exit code 0</span>`;
+                    }
+
+                } catch (e) {
+                    output.innerHTML = `<span class="text-gray-400">Process started...</span>\n<span class="text-red-500">Traceback (most recent call last):\n  File "main.py", line 1, in <module>\n${e.name}: ${e.message}</span>\n<span class="text-red-400">Process finished with exit code 1</span>`;
+                }
+            };
+        }
+
+        function renderTerminal(container) {
+            const uniqueId = Date.now() + Math.random().toString(36).substr(2, 9);
+            container.innerHTML = `
+                <div class="flex flex-col h-full bg-black text-gray-200 font-mono text-sm p-2" onclick="document.getElementById('cmd-input-${uniqueId}').focus()">
+                    <div class="mb-2">Microsoft Windows [Version 12.0.25398.1]<br>(c) Microsoft Corporation. All rights reserved.</div>
+                    <div id="cmd-history-${uniqueId}" class="flex-col flex"></div>
+                    <div class="flex">
+                        <span class="mr-1">C:\\Users\\User></span>
+                        <input id="cmd-input-${uniqueId}" type="text" class="flex-1 bg-transparent border-none outline-none text-gray-200" autocomplete="off">
+                    </div>
+                </div>
+            `;
+
+            const input = document.getElementById(`cmd-input-${uniqueId}`);
+            const history = document.getElementById(`cmd-history-${uniqueId}`);
+
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    const command = input.value.trim();
+                    
+                    // Add to history
+                    const line = document.createElement('div');
+                    line.innerHTML = `<span>C:\\Users\\User&gt;</span> ${command}`;
+                    history.appendChild(line);
+                    
+                    // Process command
+                    const response = document.createElement('div');
+                    response.className = 'mb-2 text-gray-300';
+                    
+                    const lowerCmd = command.toLowerCase().split(' ');
+                    const mainCmd = lowerCmd[0];
+                    
+                    if (mainCmd === 'help') {
+                        response.innerHTML = `
+                            DIR      Вывод списка файлов и подкаталогов.<br>
+                            CLS      Очистка экрана.<br>
+                            ECHO     Вывод сообщений.<br>
+                            VER      Вывод сведений о версии Windows.<br>
+                            COLOR    Установка цветов переднего плана.<br>
+                            EXIT     Завершение работы командной строки.<br>
+                            TIME     Вывод текущего времени.<br>
+                            DATE     Вывод текущей даты.
+                        `;
+                    } else if (mainCmd === 'dir') {
+                        let fileList = files.map(f => {
+                            const date = new Date().toLocaleDateString();
+                            const time = new Date().toLocaleTimeString();
+                            const type = f.type === 'folder' ? '<DIR>' : '     ';
+                            return `${date}  ${time}    ${type}          ${f.name}`;
+                        }).join('<br>');
+                        response.innerHTML = ` Том в устройстве C не имеет метки.<br> Серийный номер тома: 1234-5678<br><br> Содержимое папки C:\\Users\\User\\Desktop<br><br>${fileList}<br><br>              ${files.length} файлов`;
+                    } else if (mainCmd === 'cls') {
+                        history.innerHTML = '';
+                        response.remove(); // Don't append empty response
+                        input.value = '';
+                        return;
+                    } else if (mainCmd === 'ver') {
+                        response.innerHTML = 'Microsoft Windows 12 Concept [Version 12.0.0.1]';
+                    } else if (mainCmd === 'echo') {
+                        response.innerText = command.substring(5);
+                    } else if (mainCmd === 'time') {
+                        response.innerText = 'Текущее время: ' + new Date().toLocaleTimeString();
+                    } else if (mainCmd === 'date') {
+                        response.innerText = 'Текущая дата: ' + new Date().toLocaleDateString();
+                    } else if (mainCmd === 'color') {
+                        if (lowerCmd[1]) {
+                             // Simple simulation of color command
+                             if(lowerCmd[1] === '0a') container.querySelector('div').classList.add('text-green-500');
+                             else if(lowerCmd[1] === '0c') container.querySelector('div').classList.add('text-red-500');
+                             else container.querySelector('div').className = "flex flex-col h-full bg-black text-gray-200 font-mono text-sm p-2";
+                        }
+                    } else if (mainCmd === 'exit') {
+                         // Find parent window
+                         const win = container.closest('.window');
+                         if(win) closeWindow(win.id);
+                    } else if (command !== '') {
+                        response.innerHTML = `'${mainCmd}' не является внутренней или внешней<br>командой, исполняемой программой или пакетным файлом.`;
+                    }
+                    
+                    if(response.innerHTML !== '') history.appendChild(response);
+                    
+                    input.value = '';
+                    input.scrollIntoView();
+                }
+            });
+            
+            // Focus input on init
+            setTimeout(() => input.focus(), 100);
+        }
+
+        function renderBrowser(container) {
+            const id = Date.now() + Math.random().toString(36).substr(2, 5);
+            container.innerHTML = `
+                <div class="flex flex-col h-full bg-white dark:bg-gray-800">
+                    <div class="flex items-center gap-2 p-2 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
+                        <button class="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded text-gray-600 dark:text-gray-300" onclick="document.getElementById('frame-${id}').contentWindow.history.back()"><i class="fas fa-arrow-left"></i></button>
+                        <button class="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded text-gray-600 dark:text-gray-300" onclick="document.getElementById('frame-${id}').contentWindow.history.forward()"><i class="fas fa-arrow-right"></i></button>
+                        <button class="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded text-gray-600 dark:text-gray-300" onclick="document.getElementById('frame-${id}').src = document.getElementById('frame-${id}').src"><i class="fas fa-redo"></i></button>
+                        <input type="text" id="url-${id}" class="flex-1 p-1 px-3 rounded-full text-sm bg-gray-200 dark:bg-gray-800 dark:text-white border-none outline-none focus:ring-2 ring-blue-500" value="https://www.wikipedia.org" onkeydown="if(event.key==='Enter') document.getElementById('frame-${id}').src = this.value">
+                    </div>
+                    <iframe id="frame-${id}" src="https://www.wikipedia.org" class="flex-1 w-full border-none bg-white"></iframe>
+                </div>
+            `;
+        }
+
+        function renderCalculator(container) {
+            const id = Date.now() + Math.random().toString(36).substr(2, 5);
+            container.innerHTML = `
+                <div class="flex flex-col h-full bg-gray-100 dark:bg-[#202020] p-2 select-none">
+                    <div class="mb-2 p-4 text-right text-3xl font-light bg-white dark:bg-black text-gray-800 dark:text-white rounded-lg h-16 flex items-center justify-end overflow-hidden" id="calc-display-${id}">0</div>
+                    <div class="grid grid-cols-4 gap-1 flex-1">
+                        <button onclick="calcCmd('${id}', 'clear')" class="rounded p-2 hover:bg-gray-300 dark:hover:bg-gray-600 bg-gray-200 dark:bg-gray-700 text-black dark:text-white">C</button>
+                        <button onclick="calcCmd('${id}', 'sqrt')" class="rounded p-2 hover:bg-gray-300 dark:hover:bg-gray-600 bg-gray-200 dark:bg-gray-700 text-black dark:text-white">√</button>
+                        <button onclick="calcCmd('${id}', '/')" class="rounded p-2 hover:bg-gray-300 dark:hover:bg-gray-600 bg-gray-200 dark:bg-gray-700 text-black dark:text-white">÷</button>
+                        <button onclick="calcCmd('${id}', '*')" class="rounded p-2 hover:bg-gray-300 dark:hover:bg-gray-600 bg-gray-200 dark:bg-gray-700 text-black dark:text-white">×</button>
+                        
+                        <button onclick="calcInput('${id}', '7')" class="rounded p-2 hover:bg-white dark:hover:bg-gray-600 bg-white dark:bg-gray-800 font-bold text-black dark:text-white">7</button>
+                        <button onclick="calcInput('${id}', '8')" class="rounded p-2 hover:bg-white dark:hover:bg-gray-600 bg-white dark:bg-gray-800 font-bold text-black dark:text-white">8</button>
+                        <button onclick="calcInput('${id}', '9')" class="rounded p-2 hover:bg-white dark:hover:bg-gray-600 bg-white dark:bg-gray-800 font-bold text-black dark:text-white">9</button>
+                        <button onclick="calcCmd('${id}', '-')" class="rounded p-2 hover:bg-gray-300 dark:hover:bg-gray-600 bg-gray-200 dark:bg-gray-700 text-black dark:text-white">-</button>
+                        
+                        <button onclick="calcInput('${id}', '4')" class="rounded p-2 hover:bg-white dark:hover:bg-gray-600 bg-white dark:bg-gray-800 font-bold text-black dark:text-white">4</button>
+                        <button onclick="calcInput('${id}', '5')" class="rounded p-2 hover:bg-white dark:hover:bg-gray-600 bg-white dark:bg-gray-800 font-bold text-black dark:text-white">5</button>
+                        <button onclick="calcInput('${id}', '6')" class="rounded p-2 hover:bg-white dark:hover:bg-gray-600 bg-white dark:bg-gray-800 font-bold text-black dark:text-white">6</button>
+                        <button onclick="calcCmd('${id}', '+')" class="rounded p-2 hover:bg-gray-300 dark:hover:bg-gray-600 bg-gray-200 dark:bg-gray-700 text-black dark:text-white">+</button>
+                        
+                        <button onclick="calcInput('${id}', '1')" class="rounded p-2 hover:bg-white dark:hover:bg-gray-600 bg-white dark:bg-gray-800 font-bold text-black dark:text-white">1</button>
+                        <button onclick="calcInput('${id}', '2')" class="rounded p-2 hover:bg-white dark:hover:bg-gray-600 bg-white dark:bg-gray-800 font-bold text-black dark:text-white">2</button>
+                        <button onclick="calcInput('${id}', '3')" class="rounded p-2 hover:bg-white dark:hover:bg-gray-600 bg-white dark:bg-gray-800 font-bold text-black dark:text-white">3</button>
+                        <button onclick="calcCmd('${id}', '=')" class="row-span-2 rounded p-2 hover:bg-blue-600 bg-blue-500 text-white flex items-center justify-center text-xl">=</button>
+                        
+                        <button onclick="calcInput('${id}', '0')" class="col-span-2 rounded p-2 hover:bg-white dark:hover:bg-gray-600 bg-white dark:bg-gray-800 font-bold text-black dark:text-white">0</button>
+                        <button onclick="calcInput('${id}', '.')" class="rounded p-2 hover:bg-white dark:hover:bg-gray-600 bg-white dark:bg-gray-800 font-bold text-black dark:text-white">.</button>
+                    </div>
+                </div>
+            `;
+            
+            // Store state
+            window['calc_' + id] = { current: '', prev: '', op: null };
+        }
+
+        window.calcInput = (id, val) => {
+            const display = document.getElementById('calc-display-' + id);
+            const state = window['calc_' + id];
+            if(!state) return; 
+            
+            if(state.reset) {
+                display.innerText = '';
+                state.reset = false;
+            }
+            
+            if(display.innerText === '0' && val !== '.') display.innerText = val;
+            else display.innerText += val;
+        };
+        
+        window.calcCmd = (id, cmd) => {
+            const display = document.getElementById('calc-display-' + id);
+            const state = window['calc_' + id];
+            if(!state) return;
+            
+            if(cmd === 'clear') {
+                display.innerText = '0';
+                state.prev = '';
+                state.op = null;
+                return;
+            }
+            
+            if(cmd === 'sqrt') {
+                display.innerText = Math.sqrt(parseFloat(display.innerText));
+                state.reset = true;
+                return;
+            }
+            
+            if(cmd === '=') {
+                if(!state.op || !state.prev) return;
+                const a = parseFloat(state.prev);
+                const b = parseFloat(display.innerText);
+                let res = 0;
+                if(state.op === '+') res = a + b;
+                if(state.op === '-') res = a - b;
+                if(state.op === '*') res = a * b;
+                if(state.op === '/') res = a / b;
+                
+                display.innerText = res;
+                state.prev = '';
+                state.op = null;
+                state.reset = true;
+                return;
+            }
+            
+            // Operators
+            state.prev = display.innerText;
+            state.op = cmd;
+            state.reset = true;
+        };
+
+        function renderCamera(container) {
+            const id = Date.now() + Math.random().toString(36).substr(2, 5);
+            container.innerHTML = `
+                <div class="flex flex-col h-full bg-black relative group">
+                    <video id="video-${id}" autoplay playsinline class="flex-1 w-full h-full object-cover transform scale-x-[-1]"></video>
+                    
+                    <div class="absolute top-4 right-4 z-20 flex gap-2">
+                         <button onclick="switchCameraMode('${id}', 'camera')" class="bg-black/50 hover:bg-black/70 text-white p-2 rounded-full backdrop-blur-sm" title="Веб-камера"><i class="fas fa-camera"></i></button>
+                         <button onclick="switchCameraMode('${id}', 'screen')" class="bg-black/50 hover:bg-black/70 text-white p-2 rounded-full backdrop-blur-sm" title="Экран"><i class="fas fa-desktop"></i></button>
+                    </div>
+
+                    <div class="absolute bottom-20 left-0 right-0 flex justify-center gap-4 z-10">
+                         <button onclick="setCameraMode('${id}', 'video')" id="mode-video-${id}" class="text-white font-bold px-4 py-1 rounded-full bg-white/20">Видео</button>
+                         <button onclick="setCameraMode('${id}', 'photo')" id="mode-photo-${id}" class="text-white/70 font-medium px-4 py-1 rounded-full hover:bg-white/10">Фото</button>
+                    </div>
+
+                    <div class="absolute bottom-4 left-0 right-0 flex justify-center items-center gap-4 z-10">
+                        <button onclick="toggleRecord('${id}')" id="btn-record-${id}" class="w-16 h-16 rounded-full border-4 border-white bg-red-500 hover:bg-red-600 transition-all flex items-center justify-center shadow-lg">
+                            <div class="w-6 h-6 bg-transparent"></div>
+                        </button>
+                        <button onclick="takePhoto('${id}')" id="btn-photo-${id}" class="hidden w-16 h-16 rounded-full border-4 border-white bg-white hover:bg-gray-200 transition-all items-center justify-center shadow-lg">
+                            <i class="fas fa-camera text-gray-800"></i>
+                        </button>
+                    </div>
+                    <div id="timer-${id}" class="absolute top-4 left-4 bg-red-600 text-white px-2 py-1 rounded hidden font-mono z-10">00:00</div>
+                    <canvas id="canvas-${id}" class="hidden"></canvas>
+                </div>
+            `;
+
+            let currentStream = null;
+            let mediaRecorder = null;
+            let recordedChunks = [];
+            let isRecording = false;
+            let timerInterval;
+            let mode = 'video';
+            
+            async function startStream(type) {
+                try {
+                    if (currentStream) {
+                        currentStream.getTracks().forEach(track => track.stop());
+                    }
+                    
+                    const videoEl = document.getElementById(`video-${id}`);
+                    
+                    if (type === 'screen') {
+                         currentStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
+                         videoEl.classList.remove('scale-x-[-1]'); // Don't mirror screen
+                    } else {
+                         currentStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                         videoEl.classList.add('scale-x-[-1]'); // Mirror camera
+                    }
+                    
+                    videoEl.srcObject = currentStream;
+                    
+                    currentStream.getVideoTracks()[0].onended = () => {
+                         if(isRecording) window.toggleRecord(id);
+                    };
+
+                } catch (err) {
+                    console.error("Error accessing media devices.", err);
+                    alert("Не удалось получить доступ к камере или экрану.");
+                }
+            }
+            
+            startStream('camera');
+
+            window.switchCameraMode = (uid, modeName) => {
+                if(uid === id) startStream(modeName);
+            };
+
+            window.setCameraMode = (uid, newMode) => {
+                if(uid !== id) return;
+                mode = newMode;
+                
+                const btnVideo = document.getElementById(`mode-video-${id}`);
+                const btnPhoto = document.getElementById(`mode-photo-${id}`);
+                const triggerRecord = document.getElementById(`btn-record-${id}`);
+                const triggerPhoto = document.getElementById(`btn-photo-${id}`);
+
+                if(mode === 'video') {
+                    btnVideo.classList.add('bg-white/20', 'font-bold', 'text-white');
+                    btnVideo.classList.remove('text-white/70', 'font-medium');
+                    btnPhoto.classList.remove('bg-white/20', 'font-bold', 'text-white');
+                    btnPhoto.classList.add('text-white/70', 'font-medium');
+                    
+                    triggerRecord.classList.remove('hidden');
+                    triggerRecord.classList.add('flex');
+                    triggerPhoto.classList.add('hidden');
+                    triggerPhoto.classList.remove('flex');
+                } else {
+                    btnPhoto.classList.add('bg-white/20', 'font-bold', 'text-white');
+                    btnPhoto.classList.remove('text-white/70', 'font-medium');
+                    btnVideo.classList.remove('bg-white/20', 'font-bold', 'text-white');
+                    btnVideo.classList.add('text-white/70', 'font-medium');
+                    
+                    triggerPhoto.classList.remove('hidden');
+                    triggerPhoto.classList.add('flex');
+                    triggerRecord.classList.add('hidden');
+                    triggerRecord.classList.remove('flex');
+                }
+            };
+
+            window.takePhoto = (uid) => {
+                if(uid !== id || !currentStream) return;
+                const video = document.getElementById(`video-${id}`);
+                const canvas = document.getElementById(`canvas-${id}`);
+                
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                
+                const ctx = canvas.getContext('2d');
+                // Check if mirrored
+                if(video.classList.contains('scale-x-[-1]')) {
+                    ctx.translate(canvas.width, 0);
+                    ctx.scale(-1, 1);
+                }
+                ctx.drawImage(video, 0, 0);
+                
+                const url = canvas.toDataURL('image/png');
+                
+                // Flash effect
+                const flash = document.createElement('div');
+                flash.className = 'absolute inset-0 bg-white z-50 transition opacity duration-300';
+                container.querySelector('div').appendChild(flash);
+                setTimeout(() => flash.classList.add('opacity-0'), 50);
+                setTimeout(() => flash.remove(), 350);
+                
+                // Save file
+                const filename = `Photo_${new Date().toLocaleTimeString().replace(/:/g,'-')}.png`;
+                const newFile = {
+                    id: 'img_' + Date.now(),
+                    name: filename,
+                    type: 'image',
+                    icon: 'fa-image',
+                    color: 'text-purple-500',
+                    content: url,
+                    x: 150,
+                    y: 150
+                };
+                
+                files.push(newFile);
+                renderDesktopIcons();
+                
+                const notif = document.createElement('div');
+                notif.className = 'fixed bottom-12 right-4 bg-gray-800 text-white px-4 py-2 rounded shadow-lg z-[100000] animate-bounce';
+                notif.innerText = `Фото сохранено: ${filename}`;
+                document.body.appendChild(notif);
+                setTimeout(() => notif.remove(), 3000);
+            };
+
+            window.toggleRecord = (uid) => {
+                if (uid !== id) return;
+                
+                if (!isRecording) {
+                    if (!currentStream || !currentStream.active) {
+                        alert("Нет активного потока для записи.");
+                        return;
+                    }
+
+                    mediaRecorder = new MediaRecorder(currentStream);
+                    mediaRecorder.ondataavailable = (event) => {
+                        if (event.data.size > 0) recordedChunks.push(event.data);
+                    };
+                    mediaRecorder.onstop = () => {
+                        const blob = new Blob(recordedChunks, { type: 'video/webm' });
+                        recordedChunks = [];
+                        const url = URL.createObjectURL(blob);
+                        
+                        // Save to OS Desktop
+                        const filename = `Video_${new Date().toLocaleTimeString().replace(/:/g,'-')}.webm`;
+                        const newFile = {
+                            id: 'vid_' + Date.now(),
+                            name: filename,
+                            type: 'video',
+                            icon: 'fa-film',
+                            color: 'text-red-500',
+                            content: url, // Blob URL
+                            x: 150,
+                            y: 150
+                        };
+                        
+                        files.push(newFile);
+                        renderDesktopIcons();
+                        
+                        // Notification
+                        const notif = document.createElement('div');
+                        notif.className = 'fixed bottom-12 right-4 bg-gray-800 text-white px-4 py-2 rounded shadow-lg z-[100000] animate-bounce';
+                        notif.innerText = `Видео сохранено на рабочий стол: ${filename}`;
+                        document.body.appendChild(notif);
+                        setTimeout(() => notif.remove(), 3000);
+                    };
+                    
+                    mediaRecorder.start();
+                    isRecording = true;
+                    const btn = document.getElementById(`btn-record-${id}`);
+                    btn.classList.add('animate-pulse');
+                    btn.style.borderColor = 'red';
+                    btn.style.backgroundColor = 'white';
+                    
+                    document.getElementById(`timer-${id}`).classList.remove('hidden');
+                    
+                    let seconds = 0;
+                    timerInterval = setInterval(() => {
+                        seconds++;
+                        const mins = Math.floor(seconds / 60).toString().padStart(2, '0');
+                        const secs = (seconds % 60).toString().padStart(2, '0');
+                        const timer = document.getElementById(`timer-${id}`);
+                        if(timer) timer.innerText = `${mins}:${secs}`;
+                    }, 1000);
+                    
+                } else {
+                    if(mediaRecorder && mediaRecorder.state !== 'inactive') {
+                        mediaRecorder.stop();
+                    }
+                    isRecording = false;
+                    const btn = document.getElementById(`btn-record-${id}`);
+                    btn.classList.remove('animate-pulse');
+                    btn.style.borderColor = 'white';
+                    btn.style.backgroundColor = '#ef4444'; 
+                    
+                    document.getElementById(`timer-${id}`).classList.add('hidden');
+                    clearInterval(timerInterval);
+                }
+            };
+        }
+
+        function renderChat(container) {
+            const id = Date.now();
+            
+            // Initial data
+            if(!window.chatData) {
+                window.chatData = {
+                    currentChat: 'group_main',
+                    chats: [
+                        { id: 'group_main', name: 'Общий Чат', type: 'group', icon: 'fa-users', color: 'bg-blue-500', messages: [{from: 'Система', text: 'Добро пожаловать в общий чат!'}] },
+                        { id: 'channel_news', name: 'Новости', type: 'channel', icon: 'fa-bullhorn', color: 'bg-red-500', messages: [{from: 'Admin', text: 'Последние новости Windows 12...'}] },
+                        { id: 'bot_alice', name: 'Алиса', type: 'bot', icon: 'fa-robot', color: 'bg-purple-500', messages: [{from: 'Алиса', text: 'Привет! Я виртуальный помощник.'}] }
+                    ]
+                };
+            }
+
+            const bots = [
+                { name: "Алиса", color: "bg-purple-600", icon: "fa-robot" },
+                { name: "Олег", color: "bg-yellow-500", icon: "fa-user-astronaut" },
+                { name: "Система", color: "bg-gray-600", icon: "fa-server" },
+                { name: "Мария", color: "bg-pink-500", icon: "fa-user" },
+                { name: "Бот 01", color: "bg-blue-500", icon: "fa-microchip" }
+            ];
+
+            function renderSidebar() {
+                const list = document.getElementById(`chat-list-${id}`);
+                if(!list) return;
+                list.innerHTML = window.chatData.chats.map(chat => `
+                    <div class="flex items-center gap-2 p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer ${window.chatData.currentChat === chat.id ? 'bg-blue-100 dark:bg-blue-900/50' : ''}" onclick="switchChat('${id}', '${chat.id}')">
+                        <div class="w-8 h-8 rounded-full ${chat.color} flex items-center justify-center text-white text-xs">
+                            <i class="fas ${chat.icon}"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="text-sm font-medium dark:text-gray-200 truncate">${chat.name}</div>
+                            <div class="text-xs text-gray-500 truncate">${chat.messages.length ? chat.messages[chat.messages.length-1].text : ''}</div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            function renderMessages() {
+                const msgContainer = document.getElementById(`chat-messages-${id}`);
+                if(!msgContainer) return;
+                
+                const chat = window.chatData.chats.find(c => c.id === window.chatData.currentChat);
+                if(!chat) return;
+
+                msgContainer.innerHTML = chat.messages.map(msg => {
+                    const isMe = msg.from === 'Вы';
+                    if(isMe) {
+                        return `
+                             <div class="flex items-end justify-end mb-3">
+                                <div class="bg-blue-600 text-white p-3 rounded-2xl rounded-br-none shadow-sm text-sm max-w-[80%]">
+                                    ${msg.text}
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        // Find bot styling
+                        let bot = bots.find(b => b.name === msg.from);
+                        if(!bot) bot = { color: 'bg-gray-500', icon: 'fa-user' };
+                        
+                        return `
+                            <div class="flex items-end mb-3">
+                                <div class="w-8 h-8 rounded-full ${bot.color} flex items-center justify-center text-white text-xs mr-2"><i class="fas ${bot.icon}"></i></div>
+                                <div class="bg-white dark:bg-gray-700 p-3 rounded-2xl rounded-bl-none shadow-sm text-sm max-w-[80%] dark:text-white">
+                                    <span class="text-xs ${bot.color.replace('bg-', 'text-')} font-bold block mb-1 filter brightness-125">${msg.from}</span>
+                                    ${msg.text}
+                                </div>
+                            </div>
+                        `;
+                    }
+                }).join('');
+                
+                // Add header info
+                const header = document.getElementById(`chat-header-${id}`);
+                if(header) {
+                    header.innerHTML = `
+                        <div class="font-bold text-gray-800 dark:text-white">${chat.name}</div>
+                        <div class="text-xs text-gray-500">${chat.type === 'channel' ? 'Канал • Только чтение' : chat.type === 'group' ? 'Группа • ' + (bots.length + 1) + ' участников' : 'Личный чат'}</div>
+                    `;
+                }
+
+                msgContainer.scrollTop = msgContainer.scrollHeight;
+            }
+
+            container.innerHTML = `
+                <div class="flex h-full bg-gray-100 dark:bg-gray-800">
+                    <!-- Sidebar -->
+                    <div class="w-64 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 hidden sm:flex flex-col">
+                        <div class="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+                            <span class="font-bold text-gray-700 dark:text-white">Чаты</span>
+                            <button class="text-blue-500 hover:bg-blue-50 dark:hover:bg-gray-800 p-1 rounded" onclick="createNewChat('${id}')"><i class="fas fa-plus"></i></button>
+                        </div>
+                        <div class="flex-1 overflow-auto p-2 space-y-1" id="chat-list-${id}"></div>
+                    </div>
+
+                    <!-- Chat Area -->
+                    <div class="flex-1 flex flex-col">
+                        <div class="p-3 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow-sm z-10" id="chat-header-${id}"></div>
+                        
+                        <div id="chat-messages-${id}" class="flex-1 overflow-y-auto p-4 bg-gray-50 dark:bg-[#1a1a1a]"></div>
+                        
+                        <div class="p-3 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 flex gap-2" id="chat-input-area-${id}">
+                            <input type="text" id="chat-input-${id}" class="flex-1 border border-gray-300 dark:border-gray-600 rounded-full px-4 py-2 text-sm dark:bg-gray-800 dark:text-white outline-none focus:ring-2 ring-blue-500" placeholder="Написать сообщение..." onkeydown="if(event.key === 'Enter') sendMsg('${id}')">
+                            <button onclick="sendMsg('${id}')" class="bg-blue-500 hover:bg-blue-600 text-white w-10 h-10 rounded-full flex items-center justify-center transition-colors shadow-lg">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Initialize
+            renderSidebar();
+            renderMessages();
+            setTimeout(() => {
+                const inp = document.getElementById(`chat-input-${id}`);
+                if(inp) inp.focus();
+            }, 100);
+
+            window.switchChat = (uid, chatId) => {
+                window.chatData.currentChat = chatId;
+                renderSidebar(); // Update active state
+                renderMessages();
+                
+                // Disable input for channels if needed, but request said "create comments", so maybe allow replying? 
+                // Let's assume user is admin of channel for simplicity, or allow posting.
+            };
+
+            window.createNewChat = (uid) => {
+                const name = prompt("Введите название нового чата/группы:");
+                if(!name) return;
+                const newChat = {
+                    id: 'chat_' + Date.now(),
+                    name: name,
+                    type: 'group',
+                    icon: 'fa-users',
+                    color: 'bg-green-500',
+                    messages: [{from: 'Система', text: 'Группа создана.'}]
+                };
+                window.chatData.chats.push(newChat);
+                window.switchChat(uid, newChat.id);
+            };
+
+            window.sendMsg = (chatId) => {
+                const input = document.getElementById(`chat-input-${chatId}`);
+                if(!input) return;
+                const msgText = input.value.trim();
+                if(!msgText) return;
+                
+                const chat = window.chatData.chats.find(c => c.id === window.chatData.currentChat);
+                
+                // Add user message
+                chat.messages.push({ from: 'Вы', text: msgText });
+                input.value = '';
+                renderMessages();
+                renderSidebar(); // Update preview
+                
+                // Bot logic
+                if(chat.type !== 'channel') {
+                    setTimeout(() => {
+                        let botName = "Бот";
+                        let bot = bots[Math.floor(Math.random() * bots.length)];
+                        
+                        if(chat.type === 'bot') {
+                             // If it's a specific bot chat (simulated by checking id prefix or name)
+                             if(chat.name === 'Алиса') bot = bots.find(b=>b.name==='Алиса');
+                             else bot = bots.find(b=>b.name===chat.name) || bot;
+                        }
+                        
+                        const replies = [
+                            "Интересно!", "Да, конечно.", "Я не уверен...", "Ха-ха, смешно.", 
+                            "Что ты имеешь в виду?", "Согласен.", "Нет.", "Возможно."
+                        ];
+                        const reply = replies[Math.floor(Math.random() * replies.length)];
+                        
+                        chat.messages.push({ from: bot.name, text: reply });
+                        renderMessages();
+                        renderSidebar();
+                    }, 1000 + Math.random() * 2000);
+                }
+            };
+        }
+
+        function renderControlPanel(container) {
+            const items = [
+                { name: "Система", icon: "fa-laptop", color: "text-blue-600" },
+                { name: "Устройства", icon: "fa-print", color: "text-green-600" },
+                { name: "Телефон", icon: "fa-mobile-alt", color: "text-purple-600" },
+                { name: "Сеть и Интернет", icon: "fa-wifi", color: "text-blue-400" },
+                { name: "Персонализация", icon: "fa-paint-brush", color: "text-pink-500" },
+                { name: "Приложения", icon: "fa-th-large", color: "text-gray-600" },
+                { name: "Учетные записи", icon: "fa-user-circle", color: "text-orange-500" },
+                { name: "Время и язык", icon: "fa-clock", color: "text-blue-300" },
+                { name: "Игры", icon: "fa-gamepad", color: "text-green-500" },
+                { name: "Спец. возможности", icon: "fa-universal-access", color: "text-blue-700" },
+                { name: "Поиск", icon: "fa-search", color: "text-gray-500" },
+                { name: "Конфиденциальность", icon: "fa-lock", color: "text-blue-500" },
+                { name: "Обновление", icon: "fa-sync", color: "text-blue-600" }
+            ];
+
+            container.innerHTML = `
+                <div class="h-full bg-gray-50 dark:bg-gray-900 flex flex-col">
+                    <div class="p-6 bg-white dark:bg-gray-800 shadow-sm mb-4">
+                        <h1 class="text-2xl font-light text-gray-800 dark:text-white">Панель управления</h1>
+                        <p class="text-sm text-gray-500">Настройка параметров вашего компьютера</p>
+                    </div>
+                    <div class="flex-1 overflow-auto p-6">
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            ${items.map(item => `
+                                <div class="bg-white dark:bg-gray-800 p-4 rounded shadow-sm hover:shadow-md cursor-pointer flex flex-col items-center text-center gap-3 border border-transparent hover:border-blue-500 transition" onclick="openSettings()">
+                                    <i class="fas ${item.icon} fa-2x ${item.color}"></i>
+                                    <span class="text-sm font-medium dark:text-gray-200">${item.name}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderPowerPoint(container) {
+            const id = Date.now();
+            container.innerHTML = `
+                <div class="flex flex-col h-full bg-[#f3f2f1]">
+                    <!-- Toolbar -->
+                    <div class="bg-[#d04423] text-white p-2 flex items-center gap-4 text-sm">
+                        <span class="font-bold px-2">Файл</span>
+                        <span>Главная</span>
+                        <span>Вставка</span>
+                        <span>Дизайн</span>
+                        <span>Переходы</span>
+                        <span>Слайд-шоу</span>
+                        <div class="ml-auto flex gap-2">
+                             <button class="bg-white/20 hover:bg-white/30 px-3 py-1 rounded" onclick="alert('Презентация запущена!')"><i class="fas fa-play mr-1"></i> С начала</button>
+                        </div>
+                    </div>
+                    
+                    <div class="flex-1 flex overflow-hidden">
+                        <!-- Sidebar Slides -->
+                        <div class="w-48 bg-gray-100 border-r border-gray-300 p-4 flex flex-col gap-4 overflow-y-auto">
+                            <div class="aspect-video bg-white shadow border-2 border-[#d04423] p-2 text-[5px] flex items-center justify-center cursor-pointer">
+                                1. Заголовок
+                            </div>
+                             <div class="aspect-video bg-white shadow border border-gray-300 p-2 text-[5px] flex items-center justify-center cursor-pointer hover:bg-gray-50">
+                                2. Слайд
+                            </div>
+                             <div class="aspect-video bg-white shadow border border-gray-300 p-2 text-[5px] flex items-center justify-center cursor-pointer hover:bg-gray-50">
+                                3. Финал
+                            </div>
+                        </div>
+                        
+                        <!-- Main Canvas -->
+                        <div class="flex-1 bg-gray-200 p-8 flex items-center justify-center overflow-auto">
+                            <div class="bg-white w-[800px] aspect-video shadow-2xl p-12 flex flex-col items-center justify-center text-center select-none" contenteditable="true">
+                                <h1 class="text-5xl font-bold text-gray-800 mb-4">Заголовок слайда</h1>
+                                <p class="text-xl text-gray-500">Подзаголовок слайда</p>
+                                <div class="mt-8 p-4 border-2 border-dashed border-gray-300 text-gray-400">
+                                    <i class="fas fa-image mb-2"></i><br>Нажмите, чтобы добавить текст
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Footer -->
+                    <div class="bg-[#d04423] text-white text-xs p-1 px-4 flex justify-between">
+                        <span>Слайд 1 из 3</span>
+                        <span>Русский</span>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderGoogle(container) {
+            const id = Date.now();
+            container.innerHTML = `
+                <div class="flex flex-col h-full bg-white dark:bg-[#202124]">
+                    <!-- Header -->
+                    <div class="flex justify-end p-4 gap-4 items-center">
+                        <a href="#" class="text-sm text-gray-600 dark:text-gray-300 hover:underline">Почта</a>
+                        <a href="#" class="text-sm text-gray-600 dark:text-gray-300 hover:underline">Картинки</a>
+                        <div class="w-8 h-8 rounded-full bg-gray-300"></div>
+                    </div>
+                    
+                    <!-- Main -->
+                    <div class="flex-1 flex flex-col items-center justify-center pb-20">
+                        <div class="text-[80px] font-bold select-none mb-8">
+                            <span class="text-[#4285f4]">G</span><span class="text-[#ea4335]">o</span><span class="text-[#fbbc05]">o</span><span class="text-[#4285f4]">g</span><span class="text-[#34a853]">l</span><span class="text-[#ea4335]">e</span>
+                        </div>
+                        
+                        <div class="w-full max-w-[584px] relative mb-8 group">
+                            <i class="fas fa-search absolute left-4 top-3.5 text-gray-400"></i>
+                            <input type="text" id="g-search-${id}" class="w-full h-[46px] rounded-full border border-gray-200 dark:border-gray-500 dark:bg-[#303134] dark:text-white px-12 outline-none hover:shadow-md focus:shadow-md transition-shadow" onkeydown="if(event.key==='Enter') window.performGoogleSearch('${id}')">
+                            <i class="fas fa-microphone absolute right-4 top-3.5 text-[#4285f4] cursor-pointer"></i>
+                        </div>
+                        
+                        <div class="flex gap-3">
+                            <button class="bg-[#f8f9fa] dark:bg-[#303134] dark:text-gray-200 border border-transparent hover:border-gray-300 dark:hover:border-gray-500 px-4 py-2 rounded text-sm text-[#3c4043]" onclick="window.performGoogleSearch('${id}')">Поиск в Google</button>
+                            <button class="bg-[#f8f9fa] dark:bg-[#303134] dark:text-gray-200 border border-transparent hover:border-gray-300 dark:hover:border-gray-500 px-4 py-2 rounded text-sm text-[#3c4043]" onclick="window.performGoogleSearch('${id}')">Мне повезёт!</button>
+                        </div>
+                        
+                        <div class="mt-8 text-sm text-gray-600 dark:text-gray-400">
+                            Сервисы Google доступны на этих языках: <a href="#" class="text-[#1a0dab] dark:text-[#8ab4f8] hover:underline">English</a>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            setTimeout(() => {
+                const el = document.getElementById(`g-search-${id}`);
+                if(el) el.focus();
+            }, 100);
+
+            window.performGoogleSearch = (uid) => {
+                const query = document.getElementById(`g-search-${uid}`).value;
+                if(!query) return;
+                
+                // Open browser logic
+                const win = document.getElementById(`win_${uid.replace('google_', '')}`); // Hacky way to get window, but actually we are inside it. 
+                // Better: find parent window
+                
+                // Just use openWindow to open browser with query
+                const browserId = 'browser_' + Date.now();
+                // Create browser window content directly or use openApp with query? 
+                // renderBrowser defaults to wikipedia.
+                
+                // Let's replace content of current window to act like we navigated
+                const container = document.getElementById(`content_${uid.replace('google_', '')}`);
+                if(container) {
+                    // Reuse renderBrowser but inject URL
+                    const frameId = Date.now();
+                     container.innerHTML = `
+                        <div class="flex flex-col h-full bg-white dark:bg-gray-800">
+                            <div class="flex items-center gap-2 p-2 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
+                                <button class="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded text-gray-600 dark:text-gray-300"><i class="fas fa-arrow-left"></i></button>
+                                <button class="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded text-gray-600 dark:text-gray-300"><i class="fas fa-arrow-right"></i></button>
+                                <button class="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded text-gray-600 dark:text-gray-300"><i class="fas fa-redo"></i></button>
+                                <input type="text" class="flex-1 p-1 px-3 rounded-full text-sm bg-gray-200 dark:bg-gray-800 dark:text-white border-none outline-none focus:ring-2 ring-blue-500" value="https://www.google.com/search?q=${query}">
+                            </div>
+                            <iframe src="https://www.wikipedia.org/wiki/${query}" class="flex-1 w-full border-none bg-white"></iframe>
+                        </div>
+                    `;
+                    // Note: Google blocks iframes, so we use wikipedia as fallback for "results"
+                }
+            };
+        }
+
+        function renderVideoPlayer(container, fileData) {
+            container.innerHTML = `
+                <div class="flex flex-col h-full bg-black flex items-center justify-center">
+                    <video src="${fileData.content}" controls autoplay class="max-w-full max-h-full"></video>
+                </div>
+            `;
+        }
+
+        function renderWord(container) {
+            const id = Date.now();
+            container.innerHTML = `
+                <div class="flex flex-col h-full bg-[#f3f2f1]">
+                    <!-- Ribbon -->
+                    <div class="bg-white border-b border-gray-300 p-2 flex gap-2 items-center shadow-sm z-10">
+                        <div class="flex gap-1 border-r pr-2 border-gray-300">
+                            <button class="p-1 hover:bg-gray-100 rounded w-8" onclick="document.execCommand('bold')" title="Bold"><i class="fas fa-bold"></i></button>
+                            <button class="p-1 hover:bg-gray-100 rounded w-8" onclick="document.execCommand('italic')" title="Italic"><i class="fas fa-italic"></i></button>
+                            <button class="p-1 hover:bg-gray-100 rounded w-8" onclick="document.execCommand('underline')" title="Underline"><i class="fas fa-underline"></i></button>
+                        </div>
+                        <div class="flex gap-1 border-r pr-2 border-gray-300">
+                             <button class="p-1 hover:bg-gray-100 rounded w-8" onclick="document.execCommand('justifyLeft')" title="Align Left"><i class="fas fa-align-left"></i></button>
+                             <button class="p-1 hover:bg-gray-100 rounded w-8" onclick="document.execCommand('justifyCenter')" title="Align Center"><i class="fas fa-align-center"></i></button>
+                             <button class="p-1 hover:bg-gray-100 rounded w-8" onclick="document.execCommand('justifyRight')" title="Align Right"><i class="fas fa-align-right"></i></button>
+                        </div>
+                        <div class="flex gap-1">
+                             <input type="color" onchange="document.execCommand('foreColor', false, this.value)" class="w-8 h-8 p-1 cursor-pointer">
+                             <select onchange="document.execCommand('fontSize', false, this.value)" class="p-1 bg-gray-100 rounded text-sm">
+                                <option value="3">12pt</option>
+                                <option value="4">14pt</option>
+                                <option value="5">18pt</option>
+                                <option value="6">24pt</option>
+                                <option value="7">36pt</option>
+                             </select>
+                        </div>
+                        <button class="ml-auto bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700" onclick="alert('Документ сохранен в системе (симуляция)')">Сохранить</button>
+                    </div>
+                    <!-- Page -->
+                    <div class="flex-1 overflow-auto p-8 bg-gray-200 flex justify-center cursor-text" onclick="document.getElementById('word-page-${id}').focus()">
+                        <div id="word-page-${id}" class="bg-white w-[595px] min-h-[842px] p-[50px] shadow-lg outline-none text-black" contenteditable="true">
+                            <h1 style="font-size: 24pt; font-weight: bold;">Новый документ</h1>
+                            <p>Начните печатать здесь...</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Mock video data
+        let youtubeVideos = [
+            { title: "Windows 12 Trailer Concept", author: "Microsoft Design", views: "12M views", thumbnail: "https://images.unsplash.com/photo-1579546929518-9e396f3cc809?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60", src: "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" },
+            { title: "Relaxing Rain Sounds", author: "Nature Relax", views: "5.4M views", thumbnail: "https://images.unsplash.com/photo-1515694346937-94d85e41e6f0?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60", src: "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4" },
+            { title: "Python in 100 Seconds", author: "Fireship", views: "2.1M views", thumbnail: "https://images.unsplash.com/photo-1526379095098-d400fd0bf935?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60", src: "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" },
+            { title: "Lofi Hip Hop Radio - Beats to Relax/Study to", author: "Lofi Girl", views: "65M views", thumbnail: "https://images.unsplash.com/photo-1516280440614-6697288d5d38?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60", src: "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4" },
+            { title: "Top 10 Games of 2024", author: "IGN", views: "1.5M views", thumbnail: "https://images.unsplash.com/photo-1542751371-adc38448a05e?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60", src: "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4" },
+            { title: "SpaceX Starship Launch", author: "SpaceX", views: "8.9M views", thumbnail: "https://images.unsplash.com/photo-1517976487492-5750f3195933?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60", src: "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/VolkswagenGTIReview.mp4" },
+            { title: "Cooking The Perfect Steak", author: "Gordon Ramsay", views: "22M views", thumbnail: "https://images.unsplash.com/photo-1600891964092-4316c288032e?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60", src: "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/WeAreGoingOnBullrun.mp4" }
+        ];
+
+        function renderYouTube(container) {
+            const id = Date.now();
+            
+            function renderGrid() {
+                const html = youtubeVideos.map((vid, idx) => `
+                    <div class="flex flex-col cursor-pointer group" onclick="playYoutubeVideo('${id}', ${idx})">
+                        <div class="relative w-full aspect-video bg-gray-200 rounded-lg overflow-hidden mb-2">
+                            ${vid.src ? `<video src="${vid.src}" class="w-full h-full object-cover pointer-events-none" muted onmouseover="this.play()" onmouseout="this.pause();this.currentTime=0;"></video>` : `<img src="${vid.thumbnail}" class="w-full h-full object-cover group-hover:scale-105 transition duration-200">`}
+                            <div class="absolute bottom-1 right-1 bg-black/80 text-white text-xs px-1 rounded">12:00</div>
+                        </div>
+                        <div class="flex gap-2">
+                            <div class="w-8 h-8 rounded-full bg-gray-300 flex-shrink-0"></div>
+                            <div>
+                                <h3 class="font-bold text-sm leading-tight mb-1 text-gray-900 dark:text-white line-clamp-2">${vid.title}</h3>
+                                <p class="text-xs text-gray-500 hover:text-gray-700">${vid.author}</p>
+                                <p class="text-xs text-gray-500">${vid.views} • 2 days ago</p>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+                
+                return `
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-4 pb-20">
+                        ${html}
+                    </div>
+                `;
+            }
+
+            container.innerHTML = `
+                <div class="flex flex-col h-full bg-white dark:bg-[#0f0f0f]">
+                    <div class="p-3 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between sticky top-0 bg-white dark:bg-[#0f0f0f] z-20">
+                        <div class="flex items-center gap-1 text-red-600">
+                            <i class="fab fa-youtube text-2xl"></i>
+                            <span class="font-bold text-lg tracking-tighter text-gray-900 dark:text-white">MyTube <span class="text-xs font-normal text-gray-500 uppercase">Offline</span></span>
+                        </div>
+                        <div class="flex items-center gap-4">
+                             <div class="hidden sm:flex items-center bg-gray-100 dark:bg-[#121212] border border-gray-300 dark:border-gray-700 rounded-full px-4 py-1 w-64">
+                                <input type="text" placeholder="Введите запрос" class="bg-transparent outline-none w-full text-sm dark:text-white">
+                                <i class="fas fa-search text-gray-400"></i>
+                             </div>
+                             <button class="flex items-center gap-2 bg-gray-100 dark:bg-[#272727] hover:bg-gray-200 dark:hover:bg-[#3f3f3f] px-3 py-1.5 rounded-full text-sm font-medium transition text-gray-900 dark:text-white" onclick="uploadVideoToYoutube('${id}')">
+                                <i class="fas fa-video-plus"></i>
+                                <span>Создать</span>
+                             </button>
+                        </div>
+                    </div>
+                    <div class="flex-1 overflow-y-auto" id="yt-content-${id}">
+                        ${renderGrid()}
+                    </div>
+                </div>
+            `;
+            
+            // Player Logic
+            window.playYoutubeVideo = (uid, idx) => {
+                const vid = youtubeVideos[idx];
+                const content = document.getElementById(`yt-content-${uid}`);
+                const videoSrc = vid.src || (vid.thumbnail.startsWith('blob:') ? vid.thumbnail : '');
+                
+                let playerHtml = '';
+                if(videoSrc) {
+                     playerHtml = `<video src="${videoSrc}" controls autoplay class="w-full aspect-video bg-black"></video>`;
+                } else {
+                     playerHtml = `
+                        <div class="w-full aspect-video bg-black flex flex-col items-center justify-center text-white relative overflow-hidden">
+                            <img src="${vid.thumbnail}" class="absolute inset-0 w-full h-full object-cover opacity-30 blur-sm">
+                            <i class="fab fa-youtube text-6xl text-red-600 mb-4 z-10"></i>
+                            <div class="z-10 text-xl font-bold">Видео недоступно (Нет источника)</div>
+                        </div>
+                     `;
+                }
+
+                content.innerHTML = `
+                    <div class="flex flex-col lg:flex-row h-full">
+                        <div class="flex-1 p-4 lg:p-6 overflow-y-auto">
+                            ${playerHtml}
+                            <div class="mt-4">
+                                <h1 class="text-xl font-bold text-gray-900 dark:text-white">${vid.title}</h1>
+                                <div class="flex items-center justify-between mt-2 border-b border-gray-200 dark:border-gray-700 pb-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 rounded-full bg-blue-500"></div>
+                                        <div>
+                                            <h3 class="font-bold text-sm text-gray-900 dark:text-white">${vid.author}</h3>
+                                            <p class="text-xs text-gray-500">100K subscribers</p>
+                                        </div>
+                                        <button class="bg-black dark:bg-white text-white dark:text-black px-4 py-2 rounded-full text-sm font-bold ml-4">Subscribe</button>
+                                    </div>
+                                    <div class="flex gap-2">
+                                        <button class="bg-gray-100 dark:bg-[#272727] px-3 py-2 rounded-full flex items-center gap-2 text-sm text-gray-900 dark:text-white"><i class="fas fa-thumbs-up"></i> 12K</button>
+                                        <button class="bg-gray-100 dark:bg-[#272727] px-3 py-2 rounded-full flex items-center gap-2 text-sm text-gray-900 dark:text-white"><i class="fas fa-share"></i> Share</button>
+                                    </div>
+                                </div>
+                                <div class="mt-4 bg-gray-100 dark:bg-[#272727] p-3 rounded-xl text-sm text-gray-900 dark:text-white">
+                                    <p class="font-bold mb-1">${vid.views} • 2 days ago</p>
+                                    <p>Это описание видео. В оффлайн режиме комментарии отключены, но вы можете наслаждаться контентом, который вы "загрузили" или который был предустановлен.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="w-full lg:w-[350px] border-l border-gray-200 dark:border-gray-800 p-4 overflow-y-auto hidden lg:block">
+                            <!-- Sidebar suggestions -->
+                            ${youtubeVideos.map((v, i) => `
+                                <div class="flex gap-2 mb-3 cursor-pointer" onclick="playYoutubeVideo('${uid}', ${i})">
+                                    <div class="relative w-40 aspect-video bg-gray-200 rounded overflow-hidden flex-shrink-0">
+                                        <img src="${v.thumbnail}" class="w-full h-full object-cover">
+                                    </div>
+                                    <div class="flex flex-col gap-1">
+                                        <h4 class="text-sm font-bold leading-tight text-gray-900 dark:text-white line-clamp-2">${v.title}</h4>
+                                        <p class="text-xs text-gray-500">${v.author}</p>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                        
+                        <!-- Back Button -->
+                        <button onclick="renderYouTube(document.getElementById('content_${uid.replace('youtube_', '')}').parentElement.querySelector('.window-content'))" class="absolute top-20 left-4 bg-black/50 text-white p-2 rounded-full lg:hidden"><i class="fas fa-arrow-left"></i></button>
+                    </div>
+                `;
+            };
+            
+            window.uploadVideoToYoutube = (uid) => {
+                const videoFiles = files.filter(f => f.type === 'video');
+                if(videoFiles.length === 0) {
+                    alert("На рабочем столе нет видео файлов (.webm). Снимите видео через Камеру!");
+                    return;
+                }
+                const vidFile = videoFiles[videoFiles.length - 1];
+                const newVid = {
+                    title: vidFile.name,
+                    author: "Local User",
+                    views: "0 views",
+                    thumbnail: vidFile.content, // Placeholder for blob
+                    src: vidFile.content
+                };
+                youtubeVideos.unshift(newVid);
+                const content = document.getElementById(`yt-content-${uid}`);
+                content.innerHTML = renderGrid();
+            };
+        }
+        
+        function renderTranslator(container) {
+            const id = Date.now();
+            const dict = {
+                "hello": "привет", "world": "мир", "cat": "кот", "dog": "собака",
+                "computer": "компьютер", "windows": "окна", "apple": "яблоко",
+                "friend": "друг", "good": "хорошо", "day": "день", "night": "ночь",
+                "program": "программа", "code": "код", "love": "любовь",
+                "привет": "hello", "мир": "world", "кот": "cat", "собака": "dog",
+                "компьютер": "computer"
+            };
+
+            container.innerHTML = `
+                <div class="flex flex-col h-full bg-gray-50 dark:bg-gray-900">
+                    <!-- Nav -->
+                    <div class="flex items-center gap-4 p-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 overflow-x-auto">
+                        <button onclick="switchTransMode('${id}', 'text')" id="tab-text-${id}" class="trans-tab active flex items-center gap-2 px-3 py-1 rounded-full bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-white font-medium text-sm whitespace-nowrap">
+                            <i class="fas fa-font"></i> Текст
+                        </button>
+                        <button onclick="switchTransMode('${id}', 'image')" id="tab-image-${id}" class="trans-tab flex items-center gap-2 px-3 py-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 font-medium text-sm whitespace-nowrap">
+                            <i class="fas fa-image"></i> Изображение
+                        </button>
+                        <button onclick="switchTransMode('${id}', 'doc')" id="tab-doc-${id}" class="trans-tab flex items-center gap-2 px-3 py-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 font-medium text-sm whitespace-nowrap">
+                            <i class="fas fa-file-alt"></i> Документы
+                        </button>
+                         <button onclick="switchTransMode('${id}', 'site')" id="tab-site-${id}" class="trans-tab flex items-center gap-2 px-3 py-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 font-medium text-sm whitespace-nowrap">
+                            <i class="fas fa-globe"></i> Сайты
+                        </button>
+                    </div>
+
+                    <!-- Content -->
+                    <div class="flex-1 p-4 overflow-hidden relative">
+                        <!-- Text Mode -->
+                        <div id="mode-text-${id}" class="trans-mode h-full flex flex-col md:flex-row gap-4">
+                            <div class="flex-1 bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 flex flex-col">
+                                <div class="mb-2 text-sm text-gray-500 font-bold">Английский</div>
+                                <textarea id="src-text-${id}" class="flex-1 w-full resize-none outline-none bg-transparent text-lg dark:text-white" placeholder="Введите текст..."></textarea>
+                            </div>
+                            <div class="flex-1 bg-blue-50 dark:bg-gray-800/50 rounded-2xl shadow-sm border border-blue-100 dark:border-gray-700 p-4 flex flex-col">
+                                <div class="mb-2 text-sm text-blue-500 font-bold">Русский</div>
+                                <div id="tgt-text-${id}" class="flex-1 w-full text-lg text-gray-800 dark:text-gray-200 overflow-auto"></div>
+                            </div>
+                        </div>
+
+                        <!-- Image Mode -->
+                        <div id="mode-image-${id}" class="trans-mode hidden h-full flex flex-col items-center justify-center border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-2xl bg-gray-50 dark:bg-gray-800/50">
+                            <i class="fas fa-cloud-upload-alt text-5xl text-gray-400 mb-4"></i>
+                            <h3 class="text-lg font-medium text-gray-700 dark:text-gray-200">Перетащите изображение сюда</h3>
+                            <p class="text-sm text-gray-500 mb-4">или выберите файл</p>
+                            <button class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700" onclick="alert('Функция распознавания текста недоступна в оффлайн режиме')">Обзор компьютера</button>
+                        </div>
+                        
+                         <!-- Doc Mode -->
+                        <div id="mode-doc-${id}" class="trans-mode hidden h-full flex flex-col items-center justify-center border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-2xl bg-gray-50 dark:bg-gray-800/50">
+                            <i class="fas fa-file-pdf text-5xl text-red-400 mb-4"></i>
+                            <h3 class="text-lg font-medium text-gray-700 dark:text-gray-200">Перетащите документы</h3>
+                            <p class="text-sm text-gray-500 mb-4">.pdf, .docx, .txt</p>
+                            <button class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700" onclick="alert('Загрузка документов недоступна')">Выбрать документ</button>
+                        </div>
+                        
+                        <!-- Site Mode -->
+                        <div id="mode-site-${id}" class="trans-mode hidden h-full flex flex-col">
+                            <div class="flex gap-2 mb-4">
+                                <input type="text" placeholder="https://www.example.com" class="flex-1 p-3 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white outline-none focus:border-blue-500">
+                                <button class="px-6 bg-blue-600 text-white rounded-lg font-bold" onclick="alert('Не удалось подключиться к сайту (Offline)')">Перевести</button>
+                            </div>
+                            <div class="flex-1 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 flex items-center justify-center">
+                                <span class="text-gray-400">Предпросмотр веб-сайта</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="p-4 flex justify-center border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900" id="trans-action-${id}">
+                        <button onclick="runTranslation('${id}')" class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-full font-medium shadow-lg transition transform hover:scale-105 flex items-center gap-2">
+                           <i class="fas fa-language"></i> Перевести
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            window.switchTransMode = (uid, mode) => {
+                const container = document.getElementById(`content_win_${uid}`) || document.body; // Fallback context
+                // Hide all modes
+                container.querySelectorAll('.trans-mode').forEach(el => el.classList.add('hidden'));
+                // Show selected
+                const target = document.getElementById(`mode-${mode}-${uid}`);
+                if(target) target.classList.remove('hidden');
+                
+                // Update Tabs
+                container.querySelectorAll('.trans-tab').forEach(el => {
+                    el.classList.remove('bg-blue-100', 'text-blue-600', 'dark:bg-blue-900', 'dark:text-white');
+                    el.classList.add('hover:bg-gray-100', 'dark:hover:bg-gray-700', 'text-gray-600', 'dark:text-gray-300');
+                });
+                const activeTab = document.getElementById(`tab-${mode}-${uid}`);
+                activeTab.classList.remove('hover:bg-gray-100', 'dark:hover:bg-gray-700', 'text-gray-600', 'dark:text-gray-300');
+                activeTab.classList.add('bg-blue-100', 'text-blue-600', 'dark:bg-blue-900', 'dark:text-white');
+                
+                // Hide translate button for some modes
+                const actionBtn = document.getElementById(`trans-action-${uid}`);
+                if(mode === 'text') actionBtn.style.display = 'flex';
+                else actionBtn.style.display = 'none';
+            };
+
+            window.runTranslation = (uid) => {
+                const src = document.getElementById(`src-text-${uid}`).value.toLowerCase().trim();
+                const tgt = document.getElementById(`tgt-text-${uid}`);
+                
+                if(!src) {
+                    tgt.innerText = "";
+                    return;
+                }
+                
+                const words = src.split(/(\s+)/); 
+                const translated = words.map(w => {
+                    const clean = w.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,"");
+                    const found = dict[clean];
+                    if(found) return w.replace(clean, found);
+                    return w;
+                });
+                
+                tgt.innerText = translated.join('');
+            };
+        }
+
+        function renderTV(container) {
+             const channels = [
+                 { name: "Первый (Demo)", src: "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4", icon: "fa-film" },
+                 { name: "Спорт ТВ", src: "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4", icon: "fa-running" },
+                 { name: "Природа HD", src: "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4", icon: "fa-tree" },
+                 { name: "Кинохит", src: "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4", icon: "fa-video" },
+                 { name: "Мульт", src: "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4", icon: "fa-smile" }
+             ];
+             
+             const id = Date.now();
+             container.innerHTML = `
+                <div class="flex h-full bg-[#111] text-white overflow-hidden">
+                    <div class="w-48 bg-[#1a1a1a] flex flex-col border-r border-gray-800">
+                        <div class="p-3 font-bold border-b border-gray-800 text-center text-pink-500">
+                            <i class="fas fa-tv"></i> TV Channels
+                        </div>
+                        <div class="flex-1 overflow-y-auto" id="channel-list-${id}">
+                            ${channels.map((ch, idx) => `
+                                <div class="p-3 hover:bg-[#333] cursor-pointer flex items-center gap-3 transition" onclick="changeChannel('${id}', ${idx})">
+                                    <div class="w-8 h-8 rounded bg-gray-700 flex items-center justify-center"><i class="fas ${ch.icon}"></i></div>
+                                    <span class="text-sm font-medium">${ch.name}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                    <div class="flex-1 flex flex-col relative">
+                        <video id="tv-player-${id}" src="${channels[0].src}" class="w-full h-full object-contain bg-black" autoplay loop controls></video>
+                        <div class="absolute top-4 right-4 bg-red-600 text-white text-xs px-2 py-1 rounded animate-pulse shadow-lg font-bold">LIVE</div>
+                        <div id="channel-info-${id}" class="absolute bottom-10 left-4 bg-black/60 backdrop-blur px-4 py-2 rounded text-white transform transition-all duration-500 opacity-0 translate-y-4">
+                            <h2 class="text-lg font-bold">${channels[0].name}</h2>
+                            <p class="text-xs text-gray-300">Прямой эфир</p>
+                        </div>
+                    </div>
+                </div>
+             `;
+             
+             window.changeChannel = (uid, idx) => {
+                 const player = document.getElementById(`tv-player-${uid}`);
+                 const ch = channels[idx];
+                 const info = document.getElementById(`channel-info-${uid}`);
+                 
+                 player.src = ch.src;
+                 player.play();
+                 
+                 // Show info
+                 info.querySelector('h2').innerText = ch.name;
+                 info.classList.remove('opacity-0', 'translate-y-4');
+                 setTimeout(() => info.classList.add('opacity-0', 'translate-y-4'), 3000);
+             };
+        }
+
+        function renderSnippingTool(container) {
+             const id = Date.now();
+             container.innerHTML = `
+                <div class="flex flex-col h-full bg-gray-100 dark:bg-gray-800">
+                    <div class="p-2 border-b border-gray-300 dark:border-gray-600 flex gap-2 items-center bg-white dark:bg-gray-900">
+                         <button onclick="snipScreen('${id}')" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded text-sm flex items-center gap-2">
+                            <i class="fas fa-plus"></i> Создать
+                         </button>
+                         <div class="h-6 w-px bg-gray-300 dark:bg-gray-700 mx-1"></div>
+                         <button onclick="setSnipTool('${id}', 'pen')" class="p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 dark:text-white" title="Pen"><i class="fas fa-pen"></i></button>
+                         <button onclick="setSnipTool('${id}', 'highlighter')" class="p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 dark:text-white" title="Highlighter"><i class="fas fa-highlighter text-yellow-500"></i></button>
+                         <button onclick="setSnipTool('${id}', 'eraser')" class="p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 dark:text-white" title="Eraser"><i class="fas fa-eraser"></i></button>
+                         <div class="ml-auto">
+                            <button onclick="saveSnip('${id}')" class="p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 dark:text-white" title="Save"><i class="fas fa-save"></i></button>
+                         </div>
+                    </div>
+                    <div class="flex-1 bg-gray-500 overflow-auto flex items-center justify-center p-4 relative">
+                        <canvas id="snip-canvas-${id}" class="bg-white shadow-lg"></canvas>
+                        <div id="snip-placeholder-${id}" class="absolute text-white text-center opacity-50 select-none pointer-events-none">
+                            <i class="fas fa-image text-4xl mb-2"></i><br>
+                            Нажмите "Создать", чтобы сделать скриншот
+                        </div>
+                    </div>
+                </div>
+             `;
+             
+             let currentTool = 'pen';
+             
+             window.snipScreen = async (uid) => {
+                 try {
+                     const stream = await navigator.mediaDevices.getDisplayMedia({ 
+                         video: { cursor: "always" }, 
+                         audio: false 
+                     });
+                     
+                     const video = document.createElement('video');
+                     video.srcObject = stream;
+                     video.play();
+                     
+                     // Wait for video to actually start
+                     video.onloadedmetadata = () => {
+                         setTimeout(() => {
+                             const canvas = document.getElementById(`snip-canvas-${uid}`);
+                             const ctx = canvas.getContext('2d');
+                             
+                             // Set dimensions
+                             canvas.width = video.videoWidth;
+                             canvas.height = video.videoHeight;
+                             
+                             // Scale down if huge for better UX in window
+                             if(canvas.width > 1200) {
+                                 canvas.style.width = '100%';
+                                 canvas.style.height = 'auto';
+                             }
+                             
+                             ctx.drawImage(video, 0, 0);
+                             
+                             // Stop stream
+                             stream.getTracks().forEach(t => t.stop());
+                             
+                             document.getElementById(`snip-placeholder-${uid}`).style.display = 'none';
+                             
+                             // Init Drawing
+                             initDrawing(canvas, uid);
+                             
+                         }, 500); // 500ms delay to capture the screen content correctly
+                     };
+                 } catch (err) {
+                     console.error(err);
+                 }
+             };
+             
+             window.setSnipTool = (uid, tool) => {
+                 currentTool = tool;
+             };
+             
+             window.saveSnip = (uid) => {
+                 const canvas = document.getElementById(`snip-canvas-${uid}`);
+                 if(canvas.width === 0) return;
+                 const url = canvas.toDataURL('image/png');
+                 const filename = `Screenshot_${new Date().toLocaleTimeString().replace(/:/g,'-')}.png`;
+                 
+                 const newFile = {
+                    id: 'img_' + Date.now(),
+                    name: filename,
+                    type: 'image',
+                    icon: 'fa-image',
+                    color: 'text-purple-500',
+                    content: url,
+                    x: 150,
+                    y: 150
+                };
+                files.push(newFile);
+                renderDesktopIcons();
+                alert('Скриншот сохранен на рабочий стол!');
+             };
+             
+             function initDrawing(canvas, uid) {
+                 const ctx = canvas.getContext('2d');
+                 let painting = false;
+                 
+                 function startPosition(e) {
+                     painting = true;
+                     draw(e);
+                 }
+                 
+                 function finishedPosition() {
+                     painting = false;
+                     ctx.beginPath();
+                 }
+                 
+                 function draw(e) {
+                     if (!painting) return;
+                     const rect = canvas.getBoundingClientRect();
+                     // Calculate scale if canvas is resized via CSS
+                     const scaleX = canvas.width / rect.width;
+                     const scaleY = canvas.height / rect.height;
+                     
+                     const x = (e.clientX - rect.left) * scaleX;
+                     const y = (e.clientY - rect.top) * scaleY;
+                     
+                     ctx.lineCap = 'round';
+                     
+                     if (currentTool === 'pen') {
+                         ctx.lineWidth = 3;
+                         ctx.strokeStyle = 'red';
+                         ctx.globalCompositeOperation = 'source-over';
+                     } else if (currentTool === 'highlighter') {
+                         ctx.lineWidth = 15;
+                         ctx.strokeStyle = 'rgba(255, 255, 0, 0.3)';
+                         ctx.globalCompositeOperation = 'source-over';
+                     } else if (currentTool === 'eraser') {
+                         ctx.lineWidth = 20;
+                         // We can't really erase to transparency if we want to keep the image under it easily without layers
+                         // Simulating eraser by painting white isn't great for screenshots.
+                         // But for simple "whiteboard" style on top of image:
+                         // Ideally we would need layers. Here we might just paint gray or restore original pixels? 
+                         // Complexity constraint: Just painting white/gray is acceptable for "concept" or use white
+                         ctx.strokeStyle = '#ffffff'; 
+                         ctx.globalCompositeOperation = 'source-over';
+                     }
+                     
+                     ctx.lineTo(x, y);
+                     ctx.stroke();
+                     ctx.beginPath();
+                     ctx.moveTo(x, y);
+                 }
+                 
+                 canvas.onmousedown = startPosition;
+                 canvas.onmouseup = finishedPosition;
+                 canvas.onmousemove = draw;
+             }
+        }
+
+        function renderTV(container) {
+             const channels = [
+                 { name: "Первый (Demo)", src: "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4", icon: "fa-film" },
+                 { name: "Спорт ТВ", src: "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4", icon: "fa-running" },
+                 { name: "Природа HD", src: "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4", icon: "fa-tree" },
+                 { name: "Кинохит", src: "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4", icon: "fa-video" },
+                 { name: "Мульт", src: "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4", icon: "fa-smile" },
+                 { name: "Новости 24", src: "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/VolkswagenGTIReview.mp4", icon: "fa-newspaper" },
+                 { name: "Космос ТВ", src: "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/WeAreGoingOnBullrun.mp4", icon: "fa-rocket" },
+                 { name: "Музыка", src: "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/WhatCarCanYouGetForAGrand.mp4", icon: "fa-music" }
+             ];
+             
+             const id = Date.now();
+             container.innerHTML = `
+                <div class="flex h-full bg-[#111] text-white overflow-hidden">
+                    <div class="w-48 bg-[#1a1a1a] flex flex-col border-r border-gray-800">
+                        <div class="p-3 font-bold border-b border-gray-800 text-center text-pink-500">
+                            <i class="fas fa-tv"></i> TV Channels
+                        </div>
+                        <div class="flex-1 overflow-y-auto" id="channel-list-${id}">
+                            ${channels.map((ch, idx) => `
+                                <div class="p-3 hover:bg-[#333] cursor-pointer flex items-center gap-3 transition border-l-2 border-transparent hover:border-pink-500" onclick="changeChannel('${id}', ${idx})">
+                                    <div class="w-8 h-8 rounded bg-gray-700 flex items-center justify-center"><i class="fas ${ch.icon}"></i></div>
+                                    <span class="text-sm font-medium truncate">${ch.name}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                    <div class="flex-1 flex flex-col relative group">
+                         <div class="flex-1 bg-black relative flex items-center justify-center">
+                            <video id="tv-player-${id}" src="${channels[0].src}" class="w-full h-full object-contain" autoplay loop controls></video>
+                            <div class="absolute top-4 right-4 bg-red-600 text-white text-xs px-2 py-1 rounded animate-pulse shadow-lg font-bold pointer-events-none z-10">LIVE</div>
+                        </div>
+                        <div id="channel-info-${id}" class="absolute bottom-12 left-4 bg-black/60 backdrop-blur px-4 py-2 rounded text-white transform transition-all duration-500 opacity-0 translate-y-4 pointer-events-none z-10">
+                            <h2 class="text-lg font-bold text-pink-400 shadow-black drop-shadow-md">${channels[0].name}</h2>
+                            <p class="text-xs text-gray-300">Прямой эфир • 1080p</p>
+                        </div>
+                    </div>
+                </div>
+             `;
+             
+             window.changeChannel = (uid, idx) => {
+                 const player = document.getElementById(`tv-player-${uid}`);
+                 const ch = channels[idx];
+                 const info = document.getElementById(`channel-info-${uid}`);
+                 
+                 player.src = ch.src;
+                 player.play();
+                 
+                 // Show info
+                 info.querySelector('h2').innerText = ch.name;
+                 info.classList.remove('opacity-0', 'translate-y-4');
+                 setTimeout(() => info.classList.add('opacity-0', 'translate-y-4'), 3000);
+             };
+        }
+
+        function renderSnippingTool(container) {
+             const id = Date.now();
+             container.innerHTML = `
+                <div class="flex flex-col h-full bg-gray-100 dark:bg-gray-800">
+                    <div class="p-2 border-b border-gray-300 dark:border-gray-600 flex gap-2 items-center bg-white dark:bg-gray-900">
+                         <button onclick="snipScreen('${id}')" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded text-sm flex items-center gap-2">
+                            <i class="fas fa-plus"></i> Создать
+                         </button>
+                         <div class="h-6 w-px bg-gray-300 dark:bg-gray-700 mx-1"></div>
+                         <button onclick="setSnipTool('${id}', 'pen')" class="p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 dark:text-white" title="Pen"><i class="fas fa-pen"></i></button>
+                         <button onclick="setSnipTool('${id}', 'highlighter')" class="p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 dark:text-white" title="Highlighter"><i class="fas fa-highlighter text-yellow-500"></i></button>
+                         <button onclick="setSnipTool('${id}', 'eraser')" class="p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 dark:text-white" title="Eraser"><i class="fas fa-eraser"></i></button>
+                         <div class="ml-auto">
+                            <button onclick="saveSnip('${id}')" class="p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 dark:text-white" title="Save"><i class="fas fa-save"></i></button>
+                         </div>
+                    </div>
+                    <div class="flex-1 bg-gray-500 overflow-auto flex items-center justify-center p-4 relative">
+                        <canvas id="snip-canvas-${id}" class="bg-white shadow-lg"></canvas>
+                        <div id="snip-placeholder-${id}" class="absolute text-white text-center opacity-50 select-none pointer-events-none">
+                            <i class="fas fa-image text-4xl mb-2"></i><br>
+                            Нажмите "Создать", чтобы сделать скриншот
+                        </div>
+                    </div>
+                </div>
+             `;
+             
+             let currentTool = 'pen';
+             
+             window.snipScreen = async (uid) => {
+                 try {
+                     const stream = await navigator.mediaDevices.getDisplayMedia({ 
+                         video: { cursor: "always" }, 
+                         audio: false 
+                     });
+                     
+                     const video = document.createElement('video');
+                     video.srcObject = stream;
+                     video.play();
+                     
+                     video.onloadedmetadata = () => {
+                         setTimeout(() => {
+                             const canvas = document.getElementById(`snip-canvas-${uid}`);
+                             const ctx = canvas.getContext('2d');
+                             
+                             canvas.width = video.videoWidth;
+                             canvas.height = video.videoHeight;
+                             
+                             if(canvas.width > 1200) {
+                                 const ratio = 1200 / canvas.width;
+                                 canvas.style.width = '100%';
+                                 canvas.style.height = 'auto';
+                             }
+                             
+                             ctx.drawImage(video, 0, 0);
+                             
+                             stream.getTracks().forEach(t => t.stop());
+                             
+                             document.getElementById(`snip-placeholder-${uid}`).style.display = 'none';
+                             
+                             initDrawing(canvas, uid);
+                             
+                         }, 500);
+                     };
+                 } catch (err) {
+                     console.error(err);
+                 }
+             };
+             
+             window.setSnipTool = (uid, tool) => {
+                 currentTool = tool;
+             };
+             
+             window.saveSnip = (uid) => {
+                 const canvas = document.getElementById(`snip-canvas-${uid}`);
+                 if(canvas.width === 0) return;
+                 const url = canvas.toDataURL('image/png');
+                 const filename = `Screenshot_${new Date().toLocaleTimeString().replace(/:/g,'-')}.png`;
+                 
+                 const newFile = {
+                    id: 'img_' + Date.now(),
+                    name: filename,
+                    type: 'image',
+                    icon: 'fa-image',
+                    color: 'text-purple-500',
+                    content: url,
+                    x: 150,
+                    y: 150
+                };
+                files.push(newFile);
+                renderDesktopIcons();
+                alert('Скриншот сохранен на рабочий стол!');
+             };
+             
+             function initDrawing(canvas, uid) {
+                 const ctx = canvas.getContext('2d');
+                 let painting = false;
+                 
+                 function startPosition(e) {
+                     painting = true;
+                     draw(e);
+                 }
+                 
+                 function finishedPosition() {
+                     painting = false;
+                     ctx.beginPath();
+                 }
+                 
+                 function draw(e) {
+                     if (!painting) return;
+                     const rect = canvas.getBoundingClientRect();
+                     const scaleX = canvas.width / rect.width;
+                     const scaleY = canvas.height / rect.height;
+                     
+                     const x = (e.clientX - rect.left) * scaleX;
+                     const y = (e.clientY - rect.top) * scaleY;
+                     
+                     ctx.lineCap = 'round';
+                     
+                     if (currentTool === 'pen') {
+                         ctx.lineWidth = 3;
+                         ctx.strokeStyle = 'red';
+                         ctx.globalCompositeOperation = 'source-over';
+                     } else if (currentTool === 'highlighter') {
+                         ctx.lineWidth = 15;
+                         ctx.strokeStyle = 'rgba(255, 255, 0, 0.3)';
+                         ctx.globalCompositeOperation = 'source-over';
+                     } else if (currentTool === 'eraser') {
+                         ctx.lineWidth = 20;
+                         ctx.strokeStyle = '#ffffff'; 
+                         ctx.globalCompositeOperation = 'source-over';
+                     }
+                     
+                     ctx.lineTo(x, y);
+                     ctx.stroke();
+                     ctx.beginPath();
+                     ctx.moveTo(x, y);
+                 }
+                 
+                 canvas.onmousedown = startPosition;
+                 canvas.onmouseup = finishedPosition;
+                 canvas.onmousemove = draw;
+             }
+        }
+
+        function findFileById(id) {
+            // Search root
+            let f = files.find(x => x.id === id);
+            if(f) return f;
+            
+            // Search inside folders (1 level deep for now)
+            files.forEach(folder => {
+                if(folder.type === 'folder' && Array.isArray(folder.content)) {
+                    const sub = folder.content.find(x => x.id === id);
+                    if(sub) f = sub;
+                }
+            });
+            return f;
+        }
+
+        init();
+    </script>
+</body>
+</html>
